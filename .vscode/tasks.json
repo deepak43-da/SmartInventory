@@ -1,0 +1,29 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install redux, redux-persist, localforage, and dependencies",
+			"type": "shell",
+			"command": "npm install redux react-redux redux-persist localforage",
+			"group": "build"
+		},
+		{
+			"label": "Install @reduxjs/toolkit",
+			"type": "shell",
+			"command": "npm install @reduxjs/toolkit",
+			"group": "build"
+		},
+		{
+			"label": "Install @reduxjs/toolkit",
+			"type": "shell",
+			"command": "npm install @reduxjs/toolkit",
+			"group": "build"
+		},
+		{
+			"label": "Install redux, redux-persist, localforage, and dependencies",
+			"type": "shell",
+			"command": "npm install redux react-redux redux-persist localforage",
+			"group": "build"
+		}
+	]
+}

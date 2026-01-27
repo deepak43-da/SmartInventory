@@ -1,0 +1,178 @@
+/* Fixed layout for TaskList */
+.fixed-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  background: #f7f7f7;
+}
+
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  /* width: 100%; */
+  z-index: 10;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 12px 0 8px 0;
+}
+
+.scrollable-tasks {
+  flex: 1 1 auto;
+  padding-bottom: 20px;
+  /* overflow-y: auto; */
+  margin-bottom: 80px; /* height of footer */
+  /* padding: 0 10px; */
+}
+
+.fixed-footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: #fff;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  padding: 16px 0 12px 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-weight: bold;
+  border-radius: 10px 10px 0 0;
+}
+/* App background */
+body {
+  margin: 0;
+  background: #f6f8f7;
+  font-family: Inter, sans-serif;
+}
+
+.mobile-wrapper {
+  max-width: 390px;
+  margin: auto;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 44px;
+}
+
+.menu-icon {
+  position: absolute;
+  left: 0;
+  font-size: 22px;
+}
+
+.store-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+/* TITLE */
+.page-title {
+  margin: 18px 0 14px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* TASK CARD */
+.task-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.task-card.inactive {
+  background: #e3e2e2;
+}
+
+/* ROWS */
+.task-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* STATUS */
+.status-pill {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.status-pill.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pill.done {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ID */
+.task-id {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* META */
+.task-info {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-row {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.store-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.logout {
+  background-color: rgb(228, 60, 60);
+  padding: 10px;
+  border-radius: 20px;
+  color: white;
+  font-size: 10px;
+}
+
+.task-card.inactive {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.status-pill.inactive {
+  background: #ccc;
+  color: #555;
+}
