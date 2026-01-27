@@ -18,7 +18,6 @@ export default function TaskList() {
   const navigate = useNavigate();
   useDailyISTCleanup(store, persistor);
 
-  // Add this to your TaskList component
   const { isOnline } = useNetworkStatus();
   const { queue = [], offlineImages = [] } = useSelector(
     (state) => state.tasks || {},
@@ -27,45 +26,14 @@ export default function TaskList() {
   const tasks = useSelector((state) => state.tasks.tasks);
   const loading = false; // Optionally wire to a loading state in redux
 
-  // ... (previous imports and code remain the same until handleLogout) ...
 
   const handleLogout = () => {
-    // Only clear session data, NOT the captured images
     localStorage.removeItem("auth");
     localStorage.removeItem("id");
-    // Note: We keep 'maindata' to avoid unnecessary API calls
-    // localStorage.removeItem('maindata');
     toast.error("Logout successful!");
-    // Navigate to login
     navigate("/");
   };
 
-  // const isTaskActive = (task) => {
-  //   const now = new Date();
-
-  //   // ---- DATE RANGE CHECK ----
-  //   const startDate = new Date(task.StartDate);
-  //   const endDate = new Date(task.EndDate);
-  //   endDate.setHours(23, 59, 59, 999);
-
-  //   if (now < startDate || now > endDate) return false;
-
-  //   // ---- TIME SLOT CHECK ----
-  //   const currentHour = now.getHours();
-
-  //   if (task.TimeSlot === "Evening") {
-  //     // Evening: 3pm (15:00) to 6pm (18:00)
-  //     return currentHour >= 15 && currentHour < 18;
-  //   }
-
-  //   if (task.TimeSlot === "Night") {
-  //     // Night: 6pm (18:00) to midnight (0:00)
-  //     return currentHour >= 18 && currentHour <= 23;
-  //   }
-
-  //   // If TimeSlot doesn't match Evening or Night, return false
-  //   return false;
-  // };
 
   const TZ = "Asia/Riyadh";
     const isTaskActive = (task) => {

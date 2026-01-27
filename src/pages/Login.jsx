@@ -370,26 +370,19 @@ export default function Login() {
         return;
       }
 
-      // Store session data
       localStorage.setItem("auth", "true");
       localStorage.setItem("UserID", loginData.UserID);
       localStorage.setItem("Type", loginData.Type);
       localStorage.setItem("StoreID", loginData.StoreID);
       localStorage.setItem("maindata", JSON.stringify(loginData));
       localStorage.setItem("StoreName", loginData.Store);
-      // Show login success toast
       toast.success("Login successful!");
 
-      // Fetch tasks after login
-      // Navigation logic
-      if (loginData.Type === "Admin") {
-        navigate("/admin/vendors");
-      } else {
+    
       await dispatch(fetchTasks(loginData.StoreID));
         
 
         navigate(`/read/${loginData.StoreID}`);
-      }
     } catch (error) {
 
 
@@ -401,30 +394,7 @@ export default function Login() {
     }
   };
 
-  const dummyApiResponse = {
-    data: {
-      status: true,
-      loginType: 1, // 1 = Admin, 2 = Merchandiser
-      data: {
-        storeId: 12345,
-        storeName: "Tamimi Central Store",
-        city: "Riyadh",
-        scheduleDate: "2026-01-15",
-        tasks: [
-          {
-            taskId: 101,
-            taskName: "Check Inventory",
-            completed: false,
-          },
-          {
-            taskId: 102,
-            taskName: "Update Price Tags",
-            completed: true,
-          },
-        ],
-      },
-    },
-  };
+
 
   const isAuth = localStorage.getItem("auth");
   const id = localStorage.getItem("StoreID");
@@ -434,11 +404,8 @@ export default function Login() {
     if (isAuth === "true" && Number(id) !== 0) {
       // Check cleanup on app start as well
       checkAndPerformCleanup();
-      if (type === "Admin") {
-        navigate(`/admin/vendors`);
-      } else {
+     
         navigate(`/read/${id}`);
-      }
     }
   }, [isAuth, id, navigate]);
 
@@ -490,16 +457,7 @@ export default function Login() {
           </div>
         </div>
 
-        {/* <Button
-          variant="primary"
-          size="xlarge"
-          fullWidth
-          onClick={handleLogin}
-          isLoading={loading}
-          isDisabled={!email || !password}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </Button> */}
+      
 
         <Button
           variant="primary"

@@ -15,8 +15,7 @@ export default function AppRoutes() {
         path="/task/:Store/:ActivityID/:StoreID/:SupplierID/:ScheduleID/:Supplier/:Activity/:Duration/:DOWork"
         element={<TaskDetail />}
       />
-      {/* <Route path="/admin/vendors" element={<AdminVendorList />} />
-      <Route path="/admin/vendor/:id" element={<AdminVendorDisplayList />} /> */}
+     
     </Routes>
   );
 }
