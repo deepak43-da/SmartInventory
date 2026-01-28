@@ -285,6 +285,8 @@ export const OFFLINE_ACTION_TYPES = {
   SET_NETWORK_STATUS: "SET_NETWORK_STATUS",
   REMOVE_IMAGE: "REMOVE_IMAGE",
   CLEAR_USER_TASK_IMAGES: "CLEAR_USER_TASK_IMAGES",
+  QUANTITY_SUBMIT: "QUANTITY_SUBMIT",
+
 };
 
 // Helper function to get next midnight in IST
@@ -479,74 +481,74 @@ export const captureImageWithOfflineSupport =
   };
 
 // Enhanced sync queue with retry logic
-export const syncQueue = () => async (dispatch, getState) => {
-  const { queue, networkStatus } = getState().tasks;
+// export const syncQueue = () => async (dispatch, getState) => {
+//   const { queue, networkStatus } = getState().tasks;
 
-  if (networkStatus !== "online") {
-    return { synced: 0, failed: 0 };
-  }
+//   if (networkStatus !== "online") {
+//     return { synced: 0, failed: 0 };
+//   }
 
-  const pendingItems = queue.filter(
-    (item) => item.status === "pending" && (item.retryCount || 0) < (item.maxRetries || 3)
-  );
+//   const pendingItems = queue.filter(
+//     (item) => item.status === "pending" && (item.retryCount || 0) < (item.maxRetries || 3)
+//   );
 
-  let synced = 0;
-  let failed = 0;
+//   let synced = 0;
+//   let failed = 0;
 
-  for (const item of pendingItems) {
-    try {
-      switch (item.type) {
-        case "IMAGE_UPLOAD":
-          await uploadImage(item.data);
-          break;
-        case "DISPLAY_UPDATE":
-          await updateDisplay(item.data);
-          break;
-        default:
-          console.warn("Unknown queue item type:", item.type);
-      }
+//   for (const item of pendingItems) {
+//     try {
+//       switch (item.type) {
+//         case "IMAGE_UPLOAD":
+//           await uploadImage(item.data);
+//           break;
+//         case "DISPLAY_UPDATE":
+//           await updateDisplay(item.data);
+//           break;
+//         default:
+//           console.warn("Unknown queue item type:", item.type);
+//       }
 
-      dispatch({
-        type: "SYNC_SUCCESS",
-        payload: item.id,
-      });
-      synced++;
-    } catch (error) {
-      console.error("Sync failed for item:", item.id, error);
+//       dispatch({
+//         type: "SYNC_SUCCESS",
+//         payload: item.id,
+//       });
+//       synced++;
+//     } catch (error) {
+//       console.error("Sync failed for item:", item.id, error);
       
-      const newRetryCount = (item.retryCount || 0) + 1;
+//       const newRetryCount = (item.retryCount || 0) + 1;
       
-      if (newRetryCount >= (item.maxRetries || 3)) {
-        // Max retries exceeded, mark as failed
-        dispatch({
-          type: "SYNC_FAILED",
-          payload: {
-            id: item.id,
-            retryCount: newRetryCount,
-            error: error.message,
-            timestamp: new Date().toISOString(),
-          },
-        });
-      } else {
-        // Schedule retry with exponential backoff
-        setTimeout(() => {
-          dispatch(syncQueue());
-        }, Math.pow(2, newRetryCount) * 1000); // 2s, 4s, 8s...
+//       if (newRetryCount >= (item.maxRetries || 3)) {
+//         // Max retries exceeded, mark as failed
+//         dispatch({
+//           type: "SYNC_FAILED",
+//           payload: {
+//             id: item.id,
+//             retryCount: newRetryCount,
+//             error: error.message,
+//             timestamp: new Date().toISOString(),
+//           },
+//         });
+//       } else {
+//         // Schedule retry with exponential backoff
+//         setTimeout(() => {
+//           dispatch(syncQueue());
+//         }, Math.pow(2, newRetryCount) * 1000); // 2s, 4s, 8s...
         
-        dispatch({
-          type: "SYNC_FAILED",
-          payload: {
-            id: item.id,
-            retryCount: newRetryCount,
-          },
-        });
-      }
-      failed++;
-    }
-  }
+//         dispatch({
+//           type: "SYNC_FAILED",
+//           payload: {
+//             id: item.id,
+//             retryCount: newRetryCount,
+//           },
+//         });
+//       }
+//       failed++;
+//     }
+//   }
 
-  return { synced, failed };
-};
+//   return { synced, failed };
+// };
 
 // Network status monitoring
 export const monitorNetworkStatus = () => (dispatch) => {
@@ -675,4 +677,103 @@ async function uploadImage(img) {
 async function updateDisplay(data) {
   // Implementation for display updates
   // Add your API call here
+}
+
+
+
+
+
+// Add this to your existing offlineActions.js
+
+// Add to existing action types
+
+// Add to syncQueue function
+export const syncQueue = () => async (dispatch, getState) => {
+  const { queue, networkStatus } = getState().tasks;
+
+  if (networkStatus !== "online") {
+    return { synced: 0, failed: 0 };
+  }
+
+  const pendingItems = queue.filter(
+    (item) => item.status === "pending" && (item.retryCount || 0) < (item.maxRetries || 3)
+  );
+
+  let synced = 0;
+  let failed = 0;
+
+  for (const item of pendingItems) {
+    try {
+      switch (item.type) {
+        case "IMAGE_UPLOAD":
+          await uploadImage(item.data);
+          break;
+        case "QUANTITY_SUBMIT":  // NEW
+          await submitQuantities(item.data);
+          break;
+        case "DISPLAY_UPDATE":
+          await updateDisplay(item.data);
+          break;
+        default:
+          console.warn("Unknown queue item type:", item.type);
+      }
+
+      dispatch({
+        type: "SYNC_SUCCESS",
+        payload: item.id,
+      });
+      synced++;
+    } catch (error) {
+      console.error("Sync failed for item:", item.id, error);
+      
+      const newRetryCount = (item.retryCount || 0) + 1;
+      
+      if (newRetryCount >= (item.maxRetries || 3)) {
+        dispatch({
+          type: "SYNC_FAILED",
+          payload: {
+            id: item.id,
+            retryCount: newRetryCount,
+            error: error.message,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      } else {
+        setTimeout(() => {
+          dispatch(syncQueue());
+        }, Math.pow(2, newRetryCount) * 1000);
+        
+        dispatch({
+          type: "SYNC_FAILED",
+          payload: {
+            id: item.id,
+            retryCount: newRetryCount,
+          },
+        });
+      }
+      failed++;
+    }
+  }
+
+  return { synced, failed };
+};
+
+// Add new submission function
+async function submitQuantities(data) {
+  const response = await fetch(
+    "https://tamimi.impulseglobal.net/Report/RamadhanApp/API/Schedules.asmx/SubmitDisplayQuantities",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data }),
+    }
+  );
+  
+  if (!response.ok) {
+    throw new Error("Quantity submission failed");
+  }
+  
+  return response.json();
 }

@@ -1,13 +1,9 @@
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import CameraInline from "./CameraInline";
-import {
-  captureImageWithOfflineSupport,
-  syncQueue,
-} from "../redux/actions/offlineActions";
 import { toast } from "react-toastify";
 import { useNetworkStatus } from "./useNetworkStatus";
+import { syncQueue } from "../redux/actions/offlineActions";
+import { captureImageWithOfflineSupport } from "../redux/actions/offlineActions";
 
 const DisplayListSection = ({
   displayList = [],
@@ -16,216 +12,205 @@ const DisplayListSection = ({
   SupplierID,
   ScheduleID,
   DOWork,
+  ActivityID,
 }) => {
   const dispatch = useDispatch();
-   const { isOnline } = useNetworkStatus();
-  const [cameraStep, setCameraStep] = useState(null);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const { isOnline } = useNetworkStatus();
+  const [quantityValues, setQuantityValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [failedImages, setFailedImages] = useState({});
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraError, setCameraError] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
-  // Get offline state from Redux
-  const { offlineImages, queue, networkStatus } = useSelector(
-    (state) => state.tasks,
-  );
+  const { queue, networkStatus } = useSelector((state) => state.tasks);
 
-  // Handle image load error
-  const handleImageError = (displayId) => {
-    setFailedImages((prev) => ({
-      ...prev,
-      [displayId]: true,
-    }));
-  };
+  // Initialize quantity values
+  useEffect(() => {
+    const initialValues = {};
+    displayList.forEach(item => {
+      initialValues[item.DisplayID] = item.Quantity || "";
+    });
+    setQuantityValues(initialValues);
+  }, [displayList]);
 
-  // Get image URL or dummy image
-  const getImageUrl = (item) => {
-    if (failedImages[item.DisplayID]) {
-      return getDummyImageUrl(item);
+  // Start camera when modal opens
+  useEffect(() => {
+    if (showCameraModal && !capturedImage) {
+      startCamera();
     }
-    return item.ImageURL || getDummyImageUrl(item);
-  };
-
-  // Generate a dummy image URL based on display data
-  const getDummyImageUrl = (item) => {
-    // You can use a placeholder service or create a colored div
-    const colors = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ef4444"];
-    const colorIndex = item.DisplayID?.toString().charCodeAt(0) % colors.length || 0;
     
-    // Create a data URL for a colored rectangle with text
-    const canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 200;
-    const ctx = canvas.getContext('2d');
-    
-    // Background
-    ctx.fillStyle = colors[colorIndex];
-    ctx.fillRect(0, 0, 200, 200);
-    
-    // Text
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 14px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    // Display ID or first 3 chars
-    const displayText = item.DisplayID 
-      ? `Display ${item.DisplayID.toString().substring(0, 8)}`
-      : 'Display';
-    
-    ctx.fillText(displayText, 100, 100);
-    
-    // Status
-    ctx.font = '12px Arial';
-    // const statusText = item.Completed === "Yes" ? "Completed" : "Pending";
-    // ctx.fillText(statusText, 100, 120);
-    
-    return canvas.toDataURL();
-  };
+    return () => {
+      stopCamera();
+    };
+  }, [showCameraModal, capturedImage]);
 
-  // Helper to check if display has both images
-  const hasBothImages = (displayId) => {
-    // Check online data
-    const display = displayList.find((d) => d.DisplayID === displayId);
-    const hasOnlineBefore = display && display.BeforeImageURL;
-    const hasOnlineAfter = display && display.AfterImageURL;
-
-    // Check offline images
-    const offlineBefore = offlineImages.find(
-      (img) =>
-        img.metadata?.displayId === displayId &&
-        img.metadata?.stage?.toLowerCase() === "before",
-    );
-    const offlineAfter = offlineImages.find(
-      (img) =>
-        img.metadata?.displayId === displayId &&
-        img.metadata?.stage?.toLowerCase() === "after",
-    );
-
-    // Check pending uploads in queue
-    const queueBefore = queue.some(
-      (item) =>
-        item.type === "IMAGE_UPLOAD" &&
-        item.data?.metadata?.displayId === displayId &&
-        item.data?.metadata?.stage?.toLowerCase() === "before",
-    );
-    const queueAfter = queue.some(
-      (item) =>
-        item.type === "IMAGE_UPLOAD" &&
-        item.data?.metadata?.displayId === displayId &&
-        item.data?.metadata?.stage?.toLowerCase() === "after",
-    );
-
-    return (
-      (hasOnlineBefore || offlineBefore || queueBefore) &&
-      (hasOnlineAfter || offlineAfter || queueAfter)
-    );
-  };
-
-  // Helper to get current image state for a display
-  const getDisplayImageState = (displayId) => {
-    const display = displayList.find((d) => d.DisplayID === displayId);
-
-    const hasBefore =
-      (display && display.BeforeImageURL) ||
-      offlineImages.some(
-        (img) =>
-          img.metadata?.displayId === displayId &&
-          img.metadata?.stage?.toLowerCase() === "before",
-      ) ||
-      queue.some(
-        (item) =>
-          item.type === "IMAGE_UPLOAD" &&
-          item.data?.metadata?.displayId === displayId &&
-          item.data?.metadata?.stage?.toLowerCase() === "before",
-      );
-
-    const hasAfter =
-      (display && display.AfterImageURL) ||
-      offlineImages.some(
-        (img) =>
-          img.metadata?.displayId === displayId &&
-          img.metadata?.stage?.toLowerCase() === "after",
-      ) ||
-      queue.some(
-        (item) =>
-          item.type === "IMAGE_UPLOAD" &&
-          item.data?.metadata?.displayId === displayId &&
-          item.data?.metadata?.stage?.toLowerCase() === "after",
-      );
-
-    return { hasBefore, hasAfter, completed: hasBefore && hasAfter };
-  };
-
-  const handleCapture = (imageData) => {
-    setCapturedImage(imageData);
-  };
-
-  const handleConfirmCapture = async () => {
-    if (!capturedImage || !cameraStep) return;
-
-    setLoading(true);
+  const startCamera = async () => {
     try {
-      const metadata = {
-        userId: StoreID,
-        taskId: ScheduleID,
-        displayId: cameraStep.displayId,
-        scheduleId: ScheduleID,
-        storeId: StoreID,
-        supplierId: SupplierID,
-        DOWork: DOWork,
-        stage: cameraStep.stage,
-        type: "display_image",
-        timestamp: new Date().toISOString(),
-      };
-
-      const result = await dispatch(
-        captureImageWithOfflineSupport(capturedImage, metadata),
-      );
-
-      if (result.success) {
-        // Determine next step
-        const imageState = getDisplayImageState(cameraStep.displayId);
-
-        if (cameraStep.stage === "before" && !imageState.hasAfter) {
-          // Move to after image
-          setCameraStep({
-            displayId: cameraStep.displayId,
-            stage: "after",
-          });
-        } else {
-          // Done with this display
-          setCameraStep(null);
+      stopCamera(); // Stop any existing stream
+      
+      const constraints = {
+        video: {
+          facingMode: { exact: "environment" }, // Try back camera first
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         }
-        setCapturedImage(null);
-      } else {
-        alert(result.message || "Failed to save image");
+      };
+      
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (err) {
+        // Fallback to any camera
+        console.log("Back camera not available, using any camera");
+        constraints.video.facingMode = { ideal: "environment" };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
       }
+      
+      streamRef.current = stream;
+      setCameraError(null);
+      setIsCameraReady(true);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      
+    } catch (error) {
+      console.error("Camera error:", error);
+      setCameraError("Camera access denied or not available. Please check permissions.");
+      setIsCameraReady(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+      });
+      streamRef.current = null;
+    }
+    setIsCameraReady(false);
+  };
+
+  const captureImage = () => {
+    if (!videoRef.current || !isCameraReady) {
+      toast.error("Camera is not ready. Please try again.");
+      return;
+    }
+
+    try {
+      const video = videoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const imageData = canvas.toDataURL("image/jpeg", 0.8);
+      setCapturedImage(imageData);
+      
+      // Stop camera after capture
+      stopCamera();
     } catch (error) {
       console.error("Capture error:", error);
-      alert("An error occurred while saving the image");
-    } finally {
-      setLoading(false);
+      toast.error("Failed to capture image. Please try again.");
     }
   };
 
-  const handleRetake = () => {
-    setCapturedImage(null);
+  const handleQuantityChange = (displayId, value) => {
+    // Allow only numbers
+    if (value === "" || /^\d+$/.test(value)) {
+      setQuantityValues(prev => ({
+        ...prev,
+        [displayId]: value
+      }));
+    }
   };
 
-  const handleDisplayClick = (displayId) => {
-    if (hasBothImages(displayId)) {
-      return; // Disabled
-    }
+const validateForm = () => {
+  let hasError = false;
 
-    const imageState = getDisplayImageState(displayId);
-
-    if (!imageState.hasBefore) {
-      // Start with before image
-      setCameraStep({ displayId, stage: "before" });
-    } else if (!imageState.hasAfter) {
-      // Move to after image
-      setCameraStep({ displayId, stage: "after" });
+  displayList.forEach(item => {
+    const value = quantityValues[item.DisplayID];
+    if (!value || value.trim() === "") {
+      hasError = true;
     }
+  });
+
+  if (hasError) {
+    toast.error("Please enter quantity for all displays");
+    return false;
+  }
+
+  return true;
+};
+
+
+const handleSubmit = async () => {
+  const isValid = validateForm();
+
+  if (!isValid) return; // 🔥 STOP here if validation fails
+
+  setSubmitLoading(true);
+
+  try {
+    const submissionData = displayList.map(item => ({
+      DisplayID: item.DisplayID,
+      Quantity: quantityValues[item.DisplayID],
+      ScheduleID,
+      StoreID,
+      SupplierID,
+      ActivityID,
+      DOWork,
+      UserID: StoreID,
+      Timestamp: new Date().toISOString(),
+    }));
+
+    if (isOnline) {
+      await submitDisplayQuantities(submissionData);
+      toast.success("Quantities submitted successfully!");
+    } else {
+      await dispatch({
+        type: "ADD_TO_SYNC_QUEUE",
+        payload: {
+          type: "QUANTITY_SUBMIT",
+          data: submissionData,
+          retryCount: 0,
+          maxRetries: 3,
+        },
+      });
+      toast.info("Data saved offline. Will sync when online.");
+    }
+  } catch (error) {
+    toast.error("Failed to submit: " + error.message);
+  } finally {
+    setSubmitLoading(false);
+  }
+};
+
+
+  const submitDisplayQuantities = async (data) => {
+    // Replace with your actual API endpoint
+    const response = await fetch('https://tamimi.impulseglobal.net/Report/RamadhanApp/API/Schedules.asmx/SubmitDisplayQuantities', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ data }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Submission failed');
+    }
+    
+    return response.json();
   };
 
   const handleManualSync = async () => {
@@ -233,30 +218,63 @@ const DisplayListSection = ({
       setLoading(true);
       try {
         await dispatch(syncQueue());
-         toast.success("Sync completed");
+        toast.success("Sync completed");
       } catch (error) {
-        alert("Sync failed: " + error.message);
+        toast.error("Sync failed: " + error.message);
       } finally {
         setLoading(false);
       }
     } else {
-      alert("You are offline. Please connect to the internet to sync.");
+      toast.warning("You are offline. Please connect to the internet to sync.");
     }
   };
 
-  console.log(isOnline ,offlineImages.length , queue.length , "deepak")
+  const handleCaptureImage = async () => {
+    setCameraLoading(true);
+    try {
+      const metadata = {
+        userId: StoreID,
+        taskId: ScheduleID,
+        scheduleId: ScheduleID,
+        storeId: StoreID,
+        supplierId: SupplierID,
+        DOWork: DOWork,
+        type: "display_image",
+        timestamp: new Date().toISOString(),
+      };
+
+      const result = await dispatch(
+        captureImageWithOfflineSupport(capturedImage, metadata)
+      );
+
+      if (result.success) {
+        toast.success("Image captured successfully!");
+        setShowCameraModal(false);
+        setCapturedImage(null);
+      } else {
+        toast.error(result.message || "Failed to save image");
+      }
+    } catch (error) {
+      toast.error("Error capturing image: " + error.message);
+    } finally {
+      setCameraLoading(false);
+    }
+  };
+
+  const retakeImage = () => {
+    setCapturedImage(null);
+    startCamera();
+  };
 
   return (
     <div style={{ padding: 20 }}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 16,
+      }}>
         <h2 style={{ fontWeight: 700, fontSize: 18, color: "#111827" }}>
           Product List {networkStatus === "offline" && "(Offline)"}
         </h2>
@@ -264,25 +282,21 @@ const DisplayListSection = ({
         {/* Sync button */}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {networkStatus === "offline" && (
-            <span
-              style={{
-                color: "#dc2626",
-                fontSize: 12,
-                padding: "4px 8px",
-                background: "#fef2f2",
-                borderRadius: 4,
-              }}
-            >
+            <span style={{
+              color: "#dc2626",
+              fontSize: 12,
+              padding: "4px 8px",
+              background: "#fef2f2",
+              borderRadius: 4,
+            }}>
               Offline Mode
             </span>
           )}
 
-          {/* {(offlineImages.length > 0 || queue.length > 0) && ( */}
-          {(queue.length > 0) && (
+          {queue.length > 0 && (
             <button
               style={{
-                backgroundColor:
-                  networkStatus === "online" ? "#10b981" : "#9ca3af",
+                backgroundColor: networkStatus === "online" ? "#10b981" : "#9ca3af",
                 color: "white",
                 padding: "8px 16px",
                 borderRadius: "8px",
@@ -294,296 +308,353 @@ const DisplayListSection = ({
               onClick={handleManualSync}
               disabled={loading || networkStatus === "offline"}
             >
-              {loading
-                ? "Syncing..."
-                // : `Sync (${offlineImages.length })`}
-                : `Sync Offline Images`}
+              {loading ? "Syncing..." : "Sync Offline Data"}
             </button>
           )}
         </div>
       </div>
 
-
-  <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 16,
-        }}
-      >
-       
-
-          {(queue.length > 0  && isOnline === false) && (
-           <div style={{
-            padding: "10px",
-    background: "rgb(238 221 192)",
-    width: "100%",
-    textAlign: "center",
-    color: "red",
-    borderRadius: "11px",
-           }}>
-Please make sure to sync offline images by today, otherwise they’ll be lost.
-
-           </div>
-          )}
-        </div>
-    
-
-
-      {/* Camera section */}
-      {cameraStep && (
-        <div
-          style={{
-            marginBottom: 24,
-            padding: 20,
-            background: "#f8fafc",
-            borderRadius: 12,
-            border: "1px solid #e2e8f0",
-          }}
-        >
-          <CameraInline
-            capturedImage={capturedImage}
-            onCapture={handleCapture}
-            onRetake={handleRetake}
-            onConfirm={handleConfirmCapture}
-            stage={cameraStep.stage}
-            confirmLoading={loading}
-          />
+      {/* Camera Take Display Button - Only show after successful submission */}
+      {submitLoading === false && quantityValues[displayList[0]?.DisplayID] && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={() => setShowCameraModal(true)}
+            style={{
+              backgroundColor: "#3b82f6",
+              color: "white",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              border: "none",
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: "pointer",
+              width: "100%",
+              boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
+            }}
+          >
+            Take  Image
+          </button>
         </div>
       )}
 
-      {/* Pending uploads */}
-      {/* {(offlineImages.length > 0 || queue.length > 0) && !cameraStep && (
-        <div
-          style={{
-            marginBottom: 24,
-            padding: 16,
-            backgroundColor: "#fefce8",
-            borderRadius: 12,
-            border: "1px solid #fde047",
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 600,
-              color: "#854d0e",
-              marginBottom: 12,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>📤</span>
-            <span>
-              Pending Uploads ({offlineImages.length} offline,{" "}
-              {queue.filter((q) => q.status === "pending").length} pending)
-            </span>
-          </div>
-        </div>
-      )} */}
-
-      {/* Display list */}
-      {!cameraStep && displayList.length === 0 && !loadingDisplayList && (
-        <div
-          style={{
-            textAlign: "center",
-            color: "#888",
-            margin: "32px 0",
-            fontWeight: 500,
-            fontSize: 18,
-            padding: 40,
-            backgroundColor: "#f9fafb",
-            borderRadius: 12,
-          }}
-        >
+      {/* Display list with quantity fields */}
+      {displayList.length === 0 && !loadingDisplayList && (
+        <div style={{
+          textAlign: "center",
+          color: "#888",
+          margin: "32px 0",
+          fontWeight: 500,
+          fontSize: 18,
+          padding: 40,
+          backgroundColor: "#f9fafb",
+          borderRadius: 12,
+        }}>
           No work items available
         </div>
       )}
 
-      {!cameraStep && displayList.length > 0 && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {displayList.map((item) => {
-            const imageState = getDisplayImageState(item.DisplayID);
-            const disabled = imageState.completed;
-            const imageUrl = getImageUrl(item);
-
-            return (
-              <div
-                key={item.DisplayID}
-                style={{
-                  border: "1px solid #e5e7eb",
-                  padding: 16,
-                  borderRadius: 12,
-                  background: "#fff",
-                  opacity: disabled ? 0.7 : 1,
-                  cursor: disabled ? "not-allowed" : "pointer",
-                  position: "relative",
-                  transition: "all 0.2s",
-                  ...(!disabled && {
-                    "&:hover": {
-                      borderColor: "#10b981",
-                      boxShadow: "0 2px 8px rgba(16,185,129,0.1)",
-                    },
-                  }),
-                }}
-                onClick={() => handleDisplayClick(item.DisplayID)}
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    height: 150,
-                    borderRadius: 8,
-                    marginBottom: 12,
-                    overflow: "hidden",
-                    position: "relative",
-                    backgroundColor: "#f3f4f6",
-                  }}
-                >
-                  <img
-                    src={imageUrl}
-                    alt={`Display ${item.DisplayID}`}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                    onError={() => handleImageError(item.DisplayID)}
-                  />
-                  
-                  {/* {failedImages[item.DisplayID] && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "100%",
-                        height: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: 16,
-                        background: "linear-gradient(135deg, #3b82f6, #8b5cf6)",
-                        color: "white",
-                        borderSizing: "border-box",
-                      }}
-                    >
-                      
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          textAlign: "center",
-                        }}
-                      >
-                        Display {item.DisplayID}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          opacity: 0.9,
-                          textAlign: "center",
-                        }}
-                      >
-                        {item.Completed === "Yes" ? "Completed" : "Pending"}
-                      </div>
-                    </div>
-                  )} */}
+      {displayList.length > 0 && (
+        <div>
+          {displayList.map((item) => (
+            <div
+              key={item.DisplayID}
+              style={{
+                border: "1px solid #e5e7eb",
+                padding: 16,
+                borderRadius: 12,
+                background: "#fff",
+                marginBottom: 12,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 600, fontSize: 16 }}>
+                  Display {item.DisplayID}
                 </div>
-
-                <div
-                  style={{ fontSize: 12, color: "#6b7280", marginBottom: 4 }}
-                >
-                  ID: {item.DisplayID}
-                </div>
-
-                <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-                  <div
-                    style={{
-                      padding: "2px 6px",
-                      borderRadius: 4,
-                      fontSize: 10,
-                      fontWeight: 600,
-                      background: imageState.hasBefore ? "#10b981" : "#f3f4f6",
-                      color: imageState.hasBefore ? "white" : "#6b7280",
-                    }}
-                  >
-                    Before {imageState.hasBefore ? "✓" : "✗"}
-                  </div>
-                  <div
-                    style={{
-                      padding: "2px 6px",
-                      borderRadius: 4,
-                      fontSize: 10,
-                      fontWeight: 600,
-                      background: imageState.hasAfter ? "#10b981" : "#f3f4f6",
-                      color: imageState.hasAfter ? "white" : "#6b7280",
-                    }}
-                  >
-                    After {imageState.hasAfter ? "✓" : "✗"}
-                  </div>
-                </div>
-
-                {/* Status indicator */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  {/* <div
-                    style={{
-                      fontSize: 11,
-                      color: item.Completed === "Yes" ? "#059669" : "#d97706",
-                      fontWeight: 600,
-                      padding: "2px 8px",
-                      borderRadius: 4,
-                      backgroundColor: item.Completed === "Yes" ? "#d1fae5" : "#fef3c7",
-                    }}
-                  >
-                    {item.Completed === "Yes" ? "Completed" : "Pending"}
-                  </div> */}
-                  
-                  {/* {failedImages[item.DisplayID] && (
-                    <div
-                      style={{
-                        fontSize: 10,
-                        color: "#6b7280",
-                        padding: "2px 6px",
-                        background: "#f3f4f6",
-                        borderRadius: 4,
-                      }}
-                      title="Using placeholder image"
-                    >
-                      ⚠️ Placeholder
-                    </div>
-                  )} */}
-                </div>
-
-                {disabled && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      background: "#10b981",
-                      color: "white",
-                      padding: "2px 8px",
-                      borderRadius: 12,
-                      fontSize: 10,
-                      fontWeight: 600,
-                    }}
-                  >
-                    Completed
+                {item.Description && (
+                  <div style={{ fontSize: 14, color: "#6b7280", marginTop: 4 }}>
+                    {item.Description}
                   </div>
                 )}
               </div>
-            );
-          })}
+              
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <label style={{ fontSize: 14, fontWeight: 500 , marginBottom: 17 }}>Qty:</label>
+                <input
+                  type="text"
+                  value={quantityValues[item.DisplayID] || ""}
+                  onChange={(e) => handleQuantityChange(item.DisplayID, e.target.value)}
+                  style={{
+                    width: 80,
+                    padding: "8px 12px",
+                    border: `1px solid ${
+                      !quantityValues[item.DisplayID] && submitLoading ? "#ef4444" : "#e5e7eb"
+                    }`,
+                    borderRadius: "6px",
+                    fontSize: 16,
+                    textAlign: "center",
+                    backgroundColor: "#f9fafb",
+                  }}
+                  placeholder="-"
+                />
+              </div>
+            </div>
+          ))}
+
+          {/* Submit Button */}
+          <div style={{ marginTop: 24 }}>
+            <button
+              onClick={handleSubmit}
+              disabled={submitLoading}
+              style={{
+                backgroundColor: submitLoading ? "#9ca3af" : "#10b981",
+                color: "white",
+                padding: "14px 24px",
+                borderRadius: "8px",
+                border: "none",
+                fontWeight: 600,
+                fontSize: 16,
+                cursor: submitLoading ? "not-allowed" : "pointer",
+                width: "100%",
+                opacity: submitLoading ? 0.7 : 1,
+              }}
+            >
+              {submitLoading ? "Submitting..." : "Submit"}
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Camera Modal */}
+      {showCameraModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.9)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+          padding: 20,
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: 16,
+            padding: 24,
+            width: "100%",
+            maxWidth: 500,
+            maxHeight: "90vh",
+            overflow: "auto",
+          }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}>
+              <h3 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+                Take Display Image
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCameraModal(false);
+                  setCapturedImage(null);
+                  stopCamera();
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  fontSize: 24,
+                  cursor: "pointer",
+                  color: "#6b7280",
+                  padding: 0,
+                  width: 30,
+                  height: 30,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "50%",
+                  backgroundColor: "#f3f4f6",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Camera Component */}
+            {!capturedImage ? (
+              <div>
+                {cameraError ? (
+                  <div style={{
+                    textAlign: "center",
+                    padding: "40px 20px",
+                    backgroundColor: "#f3f4f6",
+                    borderRadius: 12,
+                    marginBottom: 16,
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
+                    <div style={{ color: "#ef4444", marginBottom: 8 }}>{cameraError}</div>
+                    <button
+                      onClick={startCamera}
+                      style={{
+                        backgroundColor: "#3b82f6",
+                        color: "white",
+                        padding: "10px 20px",
+                        borderRadius: "8px",
+                        border: "none",
+                        fontWeight: 600,
+                        fontSize: 14,
+                        cursor: "pointer",
+                        marginTop: 8,
+                      }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ position: "relative" }}>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      style={{
+                        width: "100%",
+                        borderRadius: 12,
+                        backgroundColor: "#000",
+                        marginBottom: 16,
+                        aspectRatio: "4/3",
+                        objectFit: "cover",
+                      }}
+                    />
+                    {!isCameraReady && (
+                      <div style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0,0,0,0.5)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontSize: 16,
+                      }}>
+                        Initializing camera...
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <button
+                  onClick={captureImage}
+                  disabled={!isCameraReady || cameraError}
+                  style={{
+                    backgroundColor: !isCameraReady || cameraError ? "#9ca3af" : "#3b82f6",
+                    color: "white",
+                    padding: "14px 24px",
+                    borderRadius: "8px",
+                    border: "none",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor: (!isCameraReady || cameraError) ? "not-allowed" : "pointer",
+                    width: "100%",
+                    opacity: (!isCameraReady || cameraError) ? 0.7 : 1,
+                  }}
+                >
+                  {cameraError ? "Camera Not Available" : "Capture Image"}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div style={{
+                  textAlign: "center",
+                  marginBottom: 16,
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#374151",
+                }}>
+                  Image Preview
+                </div>
+                <img
+                  src={capturedImage}
+                  alt="Captured"
+                  style={{
+                    width: "100%",
+                    borderRadius: 12,
+                    marginBottom: 16,
+                    aspectRatio: "4/3",
+                    objectFit: "contain",
+                    backgroundColor: "#f3f4f6",
+                  }}
+                />
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button
+                    onClick={retakeImage}
+                    style={{
+                      flex: 1,
+                      backgroundColor: "#f3f4f6",
+                      color: "#374151",
+                      padding: "14px",
+                      borderRadius: "8px",
+                      border: "none",
+                      fontWeight: 600,
+                      fontSize: 16,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Retake
+                  </button>
+                  <button
+                    onClick={handleCaptureImage}
+                    disabled={cameraLoading}
+                    style={{
+                      flex: 1,
+                      backgroundColor: cameraLoading ? "#9ca3af" : "#10b981",
+                      color: "white",
+                      padding: "14px",
+                      borderRadius: "8px",
+                      border: "none",
+                      fontWeight: 600,
+                      fontSize: 16,
+                      cursor: cameraLoading ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {cameraLoading ? (
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        <span style={{
+                          width: 16,
+                          height: 16,
+                          border: "2px solid rgba(255,255,255,0.3)",
+                          borderTop: "2px solid #fff",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                          animation: "spin 1s linear infinite",
+                        }}></span>
+                        Saving...
+                      </span>
+                    ) : "Submit Image"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
     </div>
   );
 };

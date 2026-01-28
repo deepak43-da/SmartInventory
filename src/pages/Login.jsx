@@ -412,7 +412,7 @@ export default function Login() {
   return (
     <div style={styles.container}>
       <div style={styles.loginCard}>
-        <h2 style={styles.title}>Welcome Back</h2>
+        <h2 style={styles.title}>Smart Inventory</h2>
         <p style={styles.subtitle}>Please sign in to continue</p>
 
         <div style={styles.formGroup}>

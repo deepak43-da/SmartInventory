@@ -1,5 +1,16 @@
 {
   "projects": {
-    "default": "merchandiser-74cad"
-  }
+    "default": "merchandiser-74cad",
+    "development": "merchandiser-74cad"
+  },
+  "targets": {
+    "merchandiser-74cad": {
+      "hosting": {
+        "merchand": [
+          "smart-inventory-301f9"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

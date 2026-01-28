@@ -251,10 +251,10 @@ export default function TaskList() {
         )}
       </div>
 
-      <div className="footer fixed-footer">
+      {/* <div className="footer fixed-footer">
         <div>Evening (3pm till Before 6pm)</div>
         <div>Night (6pm till Before Midnight)</div>
-      </div>
+      </div> */}
     </div>
   );
 }

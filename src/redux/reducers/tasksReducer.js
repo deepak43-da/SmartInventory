@@ -140,6 +140,20 @@ export default function tasksReducer(state = initialState, action) {
             ),
         ),
       };
+      // Add this case to your existing reducer
+case "ADD_TO_SYNC_QUEUE":
+  return {
+    ...state,
+    queue: [
+      ...state.queue,
+      {
+        ...action.payload,
+        id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        status: "pending",
+      },
+    ],
+  };
 
     case "CLEANUP_DATA":
       return {

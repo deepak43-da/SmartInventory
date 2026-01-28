@@ -82,8 +82,8 @@ export default defineConfig({
       ],
 
       manifest: {
-        name: 'Merchandiser',
-        short_name: 'Merchandiser',
+        name: 'SmartInventory',
+        short_name: 'SmartInventory',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
