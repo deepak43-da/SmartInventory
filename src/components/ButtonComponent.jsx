@@ -53,7 +53,7 @@ const Button = ({
   // Color variants
   const variantStyles = {
     primary: {
-      backgroundColor: '#10b981',
+      backgroundColor: 'var(--purple-main)',
       color: 'white',
     },
     secondary: {

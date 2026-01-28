@@ -8,7 +8,7 @@ import Stack from "@mui/material/Stack";
 import "./taskList.css";
 import { toast } from "react-toastify";
 import { useNetworkStatus } from "../components/useNetworkStatus";
- import moment from "moment-timezone";
+import moment from "moment-timezone";
 import { store, persistor } from "../redux/store";
 import useDailyISTCleanup from "../hooks/useDailyISTCleanup";
 
@@ -26,7 +26,6 @@ export default function TaskList() {
   const tasks = useSelector((state) => state.tasks.tasks);
   const loading = false; // Optionally wire to a loading state in redux
 
-
   const handleLogout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("id");
@@ -34,9 +33,8 @@ export default function TaskList() {
     navigate("/");
   };
 
-
   const TZ = "Asia/Riyadh";
-    const isTaskActive = (task) => {
+  const isTaskActive = (task) => {
     const now = moment().tz(TZ);
 
     const start = moment.tz(task.StartDate, TZ);
@@ -95,10 +93,13 @@ export default function TaskList() {
       </div>
     );
   }
-  console.log(isOnline,"isOnline")
+  console.log(isOnline, "isOnline");
 
   return (
-    <div className="mobile-wrapper fixed-layout">
+    <div
+      className="mobile-wrapper fixed-layout"
+      style={{ background: "var(--purple-bg)", minHeight: "100vh" }}
+    >
       {/* HEADER */}
       <div
         className="top-header fixed-header"
@@ -106,42 +107,51 @@ export default function TaskList() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          background: "var(--purple-main)",
+          color: "var(--text-light)",
+          borderRadius: 12,
+          padding: "12px 18px",
+          marginBottom: 12,
         }}
       >
-        <span className="store-title">
+        <span
+          className="store-title"
+          style={{ fontWeight: 700, fontSize: 18, color: "var(--text-light)" }}
+        >
           {localStorage.getItem("StoreName") || tasks?.[0]?.Store || ""}
         </span>
         <div style={{ display: "flex", gap: "8px" }}>
           <button
             style={{
-              backgroundColor: isOnline ? "#10b981" : "#a7a7a7",
-              color: "white",
+              background: isOnline ? "var(--purple-accent)" : "#a7a7a7",
+              color: "var(--purple-main)",
               padding: "10px 18px",
               borderRadius: "20px",
               fontSize: "13px",
-              fontWeight: 500,
+              fontWeight: 600,
               border: "none",
               cursor: isOnline ? "pointer" : "not-allowed",
               opacity: isOnline ? 1 : 0.6,
+              transition: "background 0.2s",
             }}
-            onClick={() =>{ 
-              if(isOnline)    dispatch(fetchTasks(id))
-              
-           }}
+            onClick={() => {
+              if (isOnline) dispatch(fetchTasks(id));
+            }}
             disabled={!isOnline}
           >
             Reload
           </button>
           <button
             style={{
-              backgroundColor: "rgb(228, 60, 60)",
-              color: "white",
+              background: "#a279e9",
+              color: "var(--text-light)",
               padding: "10px 18px",
               borderRadius: "20px",
               fontSize: "13px",
-              fontWeight: 500,
+              fontWeight: 600,
               border: "none",
               cursor: "pointer",
+              transition: "background 0.2s",
             }}
             onClick={handleLogout}
           >
@@ -181,6 +191,10 @@ export default function TaskList() {
                   style={{
                     marginBottom: "20px",
                     cursor: active ? "pointer" : "not-allowed",
+                    background: active
+                      ? "var(--purple-main)"
+                      : "var(--purple-accent)",
+                      borderRadius: "12px",padding: "16px",
                   }}
                   key={t.ActivityID}
                   onClick={() => {

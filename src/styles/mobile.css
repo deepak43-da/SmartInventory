@@ -1,6 +1,16 @@
+:root {
+  --purple-main: #7c3aed;
+  --purple-dark: #5b21b6;
+  --purple-light: #a78bfa;
+  --purple-bg: #f5f3ff;
+  --purple-accent: #c4b5fd;
+  --text-main: #2d1a4a;
+  --text-light: #ede9fe;
+  --border-main: #a78bfa;
+}
 
 body {
-  background: #f4f6f8;
+  background: var(--purple-bg);
   font-family: sans-serif;
 }
 
@@ -8,24 +18,26 @@ body {
   max-width: 420px;
   margin: auto;
   padding: 16px;
+  background: var(--purple-bg);
 }
 
 .primary-btn {
-  background: #12b886;
-  color: white;
+  background: var(--purple-main);
+  color: var(--text-light);
   padding: 12px;
   border-radius: 8px;
   width: 100%;
   border: none;
+  transition: background 0.2s;
 }
 
 .task-card {
-  background: white;
+  background: var(--purple-light);
   padding: 12px;
   border-radius: 10px;
   margin-bottom: 10px;
+  color: var(--text-main);
 }
-
 
 /* 
 .login-container {
@@ -46,8 +58,8 @@ body {
 .app-icon {
   width: 56px;
   height: 56px;
-  background: #12b886;
-  color: white;
+  background: var(--purple-main);
+  color: var(--text-light);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -61,7 +73,7 @@ h2 {
 }
 
 .subtitle {
-  color: #6b7280;
+  color: var(--purple-dark);
   margin-bottom: 24px;
 }
 
@@ -72,7 +84,7 @@ h2 {
 
 .field label {
   font-size: 13px;
-  color: #374151;
+  color: var(--purple-dark);
   margin-bottom: 4px;
   display: block;
 }
@@ -86,7 +98,7 @@ h2 {
 }
 
 .field input:focus {
-  border-color: #12b886;
+  border-color: var(--purple-main);
 }
 
 .primary-btn {
@@ -102,15 +114,15 @@ h2 {
 
 .primary-btn:disabled {
   opacity: 0.6;
+  background: var(--purple-accent);
 }
 
 .version-text {
   display: block;
   margin-top: 24px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--purple-accent);
 } */
-
 
 .login-screen {
   display: flex;
@@ -119,17 +131,18 @@ h2 {
 }
 .login-card {
   width: 100%;
-  /* background: white; */
+  background: var(--purple-light);
   padding: 28px;
   border-radius: 18px;
+  color: var(--text-main);
 }
 
 .app-icon {
   margin: auto;
   width: 60px;
   height: 60px;
-  background: #10b981;
-  color: white;
+  background: var(--purple-main);
+  color: var(--text-light);
   font-size: 26px;
   border-radius: 16px;
   display: flex;
@@ -141,15 +154,14 @@ h2 {
 .subtitle {
   color: #6b7280;
   margin-bottom: 20px;
-
 }
-.textcenter{
+.textcenter {
   text-align: center;
 }
 
 label {
   font-size: 13px;
-  color: #374151;
+  color: var(--purple-dark);
 }
 
 input {
@@ -157,33 +169,34 @@ input {
   padding: 12px;
   margin: 6px 0 16px;
   border-radius: 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-main);
 }
 
 .primary-btn {
   width: 100%;
-  background: #10b981;
-  color: white;
+  background: var(--purple-main);
+  color: var(--text-light);
   padding: 14px;
   border-radius: 12px;
   border: none;
   font-size: 16px;
+  transition: background 0.2s;
 }
 
 .version {
   text-align: center;
   margin-top: 30px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--purple-accent);
 }
-
 
 /*  */
 .task-card {
-  background: white;
+  background: var(--purple-light);
   border-radius: 14px;
   padding: 16px;
   margin-bottom: 14px;
+  color: var(--text-main);
 }
 
 .task-header {
@@ -195,7 +208,7 @@ input {
 .task-time,
 .task-location {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--purple-dark);
 }
 
 .badge {
@@ -205,21 +218,20 @@ input {
 }
 
 .badge.active {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--purple-accent);
+  color: var(--purple-main);
 }
 
 .badge.done {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--purple-bg);
+  color: var(--purple-dark);
 }
-
 
 /* task detail */
 
 .status-warning {
-  background: #fff7ed;
-  color: #c2410c;
+  background: var(--purple-accent);
+  color: var(--purple-dark);
   padding: 10px;
   border-radius: 10px;
   margin-bottom: 16px;
@@ -227,7 +239,7 @@ input {
 
 .tabs {
   display: flex;
-  background: #f1f5f9;
+  background: var(--purple-bg);
   border-radius: 12px;
   margin-bottom: 16px;
 }
@@ -241,7 +253,7 @@ input {
 }
 
 .tab.active {
-  background: white;
+  background: var(--purple-light);
   border-radius: 12px;
 }
 
@@ -258,8 +270,8 @@ input {
 
 .secondary-btn {
   flex: 1;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--purple-bg);
+  border: 1px solid var(--border-main);
   padding: 12px;
   border-radius: 12px;
 }
@@ -267,8 +279,8 @@ input {
 .secondary-full {
   width: 100%;
   margin-top: 14px;
-  background: #ecfdf5;
-  color: #065f46;
+  background: var(--purple-accent);
+  color: var(--purple-dark);
   border: none;
   padding: 14px;
   border-radius: 12px;

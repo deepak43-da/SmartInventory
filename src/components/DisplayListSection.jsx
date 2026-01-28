@@ -296,7 +296,7 @@ const handleSubmit = async () => {
           {queue.length > 0 && (
             <button
               style={{
-                backgroundColor: networkStatus === "online" ? "#10b981" : "#9ca3af",
+                backgroundColor: networkStatus === "online" ? "var(--purple-main)" : "#9ca3af",
                 color: "white",
                 padding: "8px 16px",
                 borderRadius: "8px",
@@ -320,7 +320,7 @@ const handleSubmit = async () => {
           <button
             onClick={() => setShowCameraModal(true)}
             style={{
-              backgroundColor: "#3b82f6",
+              backgroundColor: "var(--purple-main)",
               color: "white",
               padding: "12px 24px",
               borderRadius: "8px",
@@ -332,7 +332,7 @@ const handleSubmit = async () => {
               boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
             }}
           >
-            Take  Image
+            Take Image
           </button>
         </div>
       )}
@@ -381,7 +381,7 @@ const handleSubmit = async () => {
               </div>
               
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <label style={{ fontSize: 14, fontWeight: 500 , marginBottom: 17 }}>Qty:</label>
+                <label style={{ fontSize: 14, fontWeight: 500 }}>Qty:</label>
                 <input
                   type="text"
                   value={quantityValues[item.DisplayID] || ""}
@@ -409,7 +409,7 @@ const handleSubmit = async () => {
               onClick={handleSubmit}
               disabled={submitLoading}
               style={{
-                backgroundColor: submitLoading ? "#9ca3af" : "#10b981",
+                backgroundColor: submitLoading ? "#9ca3af" : "var(--purple-main)",
                 color: "white",
                 padding: "14px 24px",
                 borderRadius: "8px",
@@ -555,7 +555,7 @@ const handleSubmit = async () => {
                   onClick={captureImage}
                   disabled={!isCameraReady || cameraError}
                   style={{
-                    backgroundColor: !isCameraReady || cameraError ? "#9ca3af" : "#3b82f6",
+                    backgroundColor: !isCameraReady || cameraError ? "#9ca3af" : "var(--purple-main) ",
                     color: "white",
                     padding: "14px 24px",
                     borderRadius: "8px",
@@ -572,7 +572,7 @@ const handleSubmit = async () => {
               </div>
             ) : (
               <div>
-                <div style={{
+                {/* <div style={{
                   textAlign: "center",
                   marginBottom: 16,
                   fontSize: 16,
@@ -580,7 +580,7 @@ const handleSubmit = async () => {
                   color: "#374151",
                 }}>
                   Image Preview
-                </div>
+                </div> */}
                 <img
                   src={capturedImage}
                   alt="Captured"
@@ -615,7 +615,7 @@ const handleSubmit = async () => {
                     disabled={cameraLoading}
                     style={{
                       flex: 1,
-                      backgroundColor: cameraLoading ? "#9ca3af" : "#10b981",
+                      backgroundColor: cameraLoading ? "#9ca3af" : "var(--purple-main)",
                       color: "white",
                       padding: "14px",
                       borderRadius: "8px",

@@ -52,7 +52,7 @@ export default function CameraModal({
         left: 0,
         width: "100vw",
         height: "100vh",
-        background: "rgba(0,0,0,0.3)",
+        background: "rgba(124,58,237,0.10)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -62,14 +62,14 @@ export default function CameraModal({
       {/* Only keep the improved modal content below, remove duplicate/old modal content above */}
       <div
         style={{
-          background: "#fff",
+          background: "var(--purple-light)",
           padding: 32,
           borderRadius: 16,
-          // width: 320,
           maxWidth: 280,
           width: "90vw",
           position: "relative",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+          boxShadow: "0 8px 32px rgba(124,58,237,0.10)",
+          border: "2px solid var(--purple-accent)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -85,7 +85,13 @@ export default function CameraModal({
             width: "100%",
           }}
         >
-          <span style={{ fontWeight: 700, fontSize: 20, color: "#222" }}>
+          <span
+            style={{
+              fontWeight: 700,
+              fontSize: 20,
+              color: "var(--purple-main)",
+            }}
+          >
             {heading || "Camera"}
           </span>
           {onClose && (
@@ -109,7 +115,7 @@ export default function CameraModal({
               }
               onMouseOut={(e) => (e.currentTarget.style.background = "none")}
             >
-              <MdClose size={24} color="#222" />
+              <MdClose size={24} color="var(--purple-main)" />
             </button>
           )}
         </div>
@@ -131,7 +137,7 @@ export default function CameraModal({
 
                 height: 220,
                 borderRadius: 10,
-                background: "#f3f4f6",
+                background: "var(--purple-bg)",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                 objectFit: "contain",
               }}
@@ -143,8 +149,8 @@ export default function CameraModal({
                 marginTop: 22,
                 padding: "10px 32px",
                 borderRadius: 20,
-                background: "#10b981",
-                color: "#fff",
+                background: "var(--purple-main)",
+                color: "var(--text-light)",
                 border: "none",
                 fontWeight: 600,
                 fontSize: 16,
@@ -153,9 +159,11 @@ export default function CameraModal({
                 transition: "background 0.2s",
               }}
               onMouseOver={(e) =>
-                (e.currentTarget.style.background = "#059669")
+                (e.currentTarget.style.background = "var(--purple-dark)")
               }
-              onMouseOut={(e) => (e.currentTarget.style.background = "#10b981")}
+              onMouseOut={(e) =>
+                (e.currentTarget.style.background = "var(--purple-main)")
+              }
             >
               Capture
             </button>
@@ -175,7 +183,7 @@ export default function CameraModal({
                 width: 164,
                 height: 220,
                 borderRadius: 10,
-                background: "#f3f4f6",
+                background: "var(--purple-bg)",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
               }}
             />
@@ -192,18 +200,20 @@ export default function CameraModal({
                 style={{
                   padding: "10px 32px",
                   borderRadius: 20,
-                  background: "#eee",
+                  background: "var(--purple-accent)",
                   border: "none",
                   fontWeight: 600,
                   fontSize: 16,
-                  color: "#222",
+                  color: "var(--purple-main)",
                   cursor: "pointer",
                   transition: "background 0.2s",
                 }}
                 onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "#e5e7eb")
+                  (e.currentTarget.style.background = "var(--purple-light)")
                 }
-                onMouseOut={(e) => (e.currentTarget.style.background = "#eee")}
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.background = "var(--purple-accent)")
+                }
               >
                 Retake
               </button>
@@ -212,12 +222,14 @@ export default function CameraModal({
                 style={{
                   padding: "10px 32px",
                   borderRadius: 20,
-                  background: confirmLoading ? "#059669" : "#10b981",
-                  color: "#fff",
+                  background: confirmLoading
+                    ? "var(--purple-dark)"
+                    : "var(--purple-main)",
+                  color: "var(--text-light)",
                   border: "none",
                   fontWeight: 600,
                   fontSize: 16,
-                  boxShadow: "0 2px 8px rgba(16,185,129,0.08)",
+                  boxShadow: "0 2px 8px rgba(124,58,237,0.10)",
                   cursor: confirmLoading ? "not-allowed" : "pointer",
                   opacity: confirmLoading ? 0.7 : 1,
                   transition: "background 0.2s",
@@ -245,8 +257,8 @@ export default function CameraModal({
                       style={{
                         width: 18,
                         height: 18,
-                        border: "2.5px solid #fff",
-                        borderTop: "2.5px solid #10b981",
+                        border: "2.5px solid var(--text-light)",
+                        borderTop: "2.5px solid var(--purple-main)",
                         borderRadius: "50%",
                         display: "inline-block",
                         marginRight: 8,

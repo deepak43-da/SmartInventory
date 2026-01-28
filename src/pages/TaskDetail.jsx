@@ -19,18 +19,18 @@ export default function TaskDetail() {
     Duration,
     DOWork,
   } = useParams();
-  
+
   useDailyISTCleanup(store, persistor);
   const navigate = useNavigate();
   const { isOnline } = useNetworkStatus();
 
   const task = useSelector((state) =>
-    state.tasks.tasks.find(
-      (t) => {
-        return String(t.ScheduleID) === String(ScheduleID) &&
-        String(t.StoreID) === String(StoreID);
-      },
-    ),
+    state.tasks.tasks.find((t) => {
+      return (
+        String(t.ScheduleID) === String(ScheduleID) &&
+        String(t.StoreID) === String(StoreID)
+      );
+    }),
   );
 
   const displays = task?.displays || [];
@@ -46,7 +46,13 @@ export default function TaskDetail() {
   }, [auth]);
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        ...styles.container,
+        backgroundColor: "var(--purple-bg)",
+        color: "var(--purple-dark)",
+      }}
+    >
       {/* Header */}
       <div
         className="top-header fixed-header"
@@ -54,22 +60,31 @@ export default function TaskDetail() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          background: "var(--purple-main)",
+          color: "var(--text-light)",
+          borderRadius: 12,
+          padding: "12px 18px",
+          marginBottom: 12,
         }}
       >
-        <span className="store-title">
+        <span
+          className="store-title"
+          style={{ fontWeight: 700, fontSize: 18, color: "var(--text-light)" }}
+        >
           {localStorage.getItem("StoreName") || Store || ""}
         </span>
         <div style={{ display: "flex", gap: "8px" }}>
           <button
             style={{
-              backgroundColor: "#10b981",
-              color: "white",
+              background: "var(--purple-accent)",
+              color: "var(--purple-main)",
               padding: "10px 18px",
               borderRadius: "20px",
               fontSize: "13px",
-              fontWeight: 500,
+              fontWeight: 600,
               border: "none",
               cursor: "pointer",
+              transition: "background 0.2s",
             }}
             onClick={() => window.location.reload()}
           >
@@ -77,14 +92,15 @@ export default function TaskDetail() {
           </button>
           <button
             style={{
-              backgroundColor: "rgb(228, 60, 60)",
-              color: "white",
+              background: "#a279e9",
+              color: "var(--text-light)",
               padding: "10px 18px",
               borderRadius: "20px",
               fontSize: "13px",
-              fontWeight: 500,
+              fontWeight: 600,
               border: "none",
               cursor: "pointer",
+              transition: "background 0.2s",
             }}
             onClick={() => {
               localStorage.removeItem("auth");
@@ -108,16 +124,16 @@ export default function TaskDetail() {
       >
         <div
           style={{
-            background: "#fff",
+            background: "var(--purple-accent)",
             borderRadius: "14px",
-            boxShadow: "0 4px 16px rgba(34,197,94,0.10)",
+            boxShadow: "0 4px 16px rgba(124,58,237,0.10)",
             padding: "16px 24px 12px 24px",
             minWidth: "220px",
             maxWidth: "340px",
             textAlign: "center",
             fontWeight: 600,
-            color: "#189918",
-            border: "1px solid #e5e7eb",
+            color: "var(--purple-main)",
+            border: "2px solid var(--purple-accent)",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -128,7 +144,7 @@ export default function TaskDetail() {
             style={{
               fontSize: "17px",
               fontWeight: 700,
-              color: "#189918",
+              color: "var(--purple-main)",
               marginBottom: "2px",
               letterSpacing: "0.5px",
             }}
@@ -139,7 +155,7 @@ export default function TaskDetail() {
             style={{
               fontSize: "15px",
               fontWeight: 500,
-              color: "#374151",
+              color: "var(--purple-dark)",
               marginBottom: "4px",
             }}
           >
@@ -149,12 +165,12 @@ export default function TaskDetail() {
             style={{
               fontSize: "14px",
               fontWeight: 500,
-              color: "#10b981",
-              background: "#f3f4f6",
+              color: "var(--purple-main)",
+              background: "var(--purple-bg)",
               borderRadius: "8px",
               padding: "6px 14px",
               marginTop: "2px",
-              boxShadow: "0 1px 4px rgba(16,185,129,0.04)",
+              boxShadow: "0 1px 4px rgba(124,58,237,0.04)",
             }}
           >
             Hrs Book: {Duration} hrs
@@ -178,7 +194,7 @@ export default function TaskDetail() {
         <div
           style={{
             textAlign: "center",
-            color: "#888",
+            color: "var(--purple-dark)",
             margin: "32px 0",
             fontWeight: 500,
             fontSize: 18,
@@ -195,11 +211,11 @@ export default function TaskDetail() {
 
 const styles = {
   container: {
-    backgroundColor: "white",
+    backgroundColor: "var(--purple-bg)",
     minHeight: "100vh",
     padding: "16px",
     fontFamily:
       '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    color: "#374151",
+    color: "var(--purple-dark)",
   },
 };

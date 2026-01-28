@@ -287,9 +287,6 @@ import { useDispatch } from "react-redux";
 import { fetchTasks } from "../redux/actions/tasksActions";
 import axios from "axios";
 
-
-
-
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -299,7 +296,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   console.log(showPassword, "showPassword");
-
 
   // const checkAndPerformCleanup = () => {
   //   const lastCleanup = localStorage.getItem("last_data_cleanup_timestamp");
@@ -355,8 +351,6 @@ export default function Login() {
         },
       );
 
-
-
       console.log("API Response:", response.data);
 
       // Check and perform cleanup if needed
@@ -378,23 +372,16 @@ export default function Login() {
       localStorage.setItem("StoreName", loginData.Store);
       toast.success("Login successful!");
 
-    
       await dispatch(fetchTasks(loginData.StoreID));
-        
 
-        navigate(`/read/${loginData.StoreID}`);
+      navigate(`/read/${loginData.StoreID}`);
     } catch (error) {
-
-
-      
       console.error("Login error:", error);
       alert("Invalid credentials or API error");
     } finally {
       setLoading(false);
     }
   };
-
-
 
   const isAuth = localStorage.getItem("auth");
   const id = localStorage.getItem("StoreID");
@@ -404,8 +391,8 @@ export default function Login() {
     if (isAuth === "true" && Number(id) !== 0) {
       // Check cleanup on app start as well
       checkAndPerformCleanup();
-     
-        navigate(`/read/${id}`);
+
+      navigate(`/read/${id}`);
     }
   }, [isAuth, id, navigate]);
 
@@ -445,7 +432,7 @@ export default function Login() {
                 transform: "translateY(-50%)",
                 cursor: "pointer",
                 fontSize: "22px",
-                color: "#6b7280",
+                color: "var(--purple-dark)",
                 userSelect: "none",
                 display: "flex",
                 alignItems: "center",
@@ -456,8 +443,6 @@ export default function Login() {
             </span>
           </div>
         </div>
-
-      
 
         <Button
           variant="primary"
@@ -470,10 +455,7 @@ export default function Login() {
           Login
         </Button>
 
-        <div style={styles.version}>
-  App Version 1.0.0
-</div>
-
+        <div style={styles.version}>App Version 1.0.0</div>
       </div>
     </div>
   );
@@ -484,31 +466,33 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: "80vh", // ✅ REQUIRED
-    backgroundColor: "#f3f4f6",
+    minHeight: "80vh",
+    backgroundColor: "var(--purple-bg)",
     padding: "20px",
   },
   loginCard: {
     width: "100%",
     maxWidth: "400px",
-    backgroundColor: "white",
+    backgroundColor: "var(--purple-accent)",
     padding: "28px",
     borderRadius: "18px",
-    boxShadow:
-      "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    boxShadow: "0 4px 16px 0 rgba(124,58,237,0.10)",
+    border: "1.5px solid var(--purple-accent)",
   },
   title: {
     fontSize: "24px",
-    fontWeight: "600",
-    color: "#111827",
+    fontWeight: "700",
+    color: "var(--purple-main)",
     marginBottom: "8px",
     textAlign: "center",
+    letterSpacing: "0.5px",
   },
   subtitle: {
-    fontSize: "14px",
-    color: "#6b7280",
+    fontSize: "15px",
+    color: "var(--purple-dark)",
     marginBottom: "28px",
     textAlign: "center",
+    fontWeight: 500,
   },
   formGroup: {
     marginBottom: "20px",
@@ -516,35 +500,42 @@ const styles = {
   label: {
     display: "block",
     fontSize: "13px",
-    color: "#374151",
-    fontWeight: "500",
+    color: "var(--purple-dark)",
+    fontWeight: "600",
     marginBottom: "6px",
+    letterSpacing: "0.2px",
   },
   input: {
     width: "100%",
     padding: "12px",
     borderRadius: "10px",
-    border: "1px solid #e5e7eb",
-    fontSize: "14px",
+    border: "1.5px solid var(--border-main)",
+    fontSize: "15px",
     boxSizing: "border-box",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--purple-bg)",
+    color: "var(--purple-dark)",
+    outline: "none",
+    transition: "border 0.2s",
   },
   loginButton: {
     width: "100%",
-    backgroundColor: "#10b981",
-    color: "white",
+    backgroundColor: "var(--purple-main)",
+    color: "var(--text-light)",
     padding: "14px",
     borderRadius: "12px",
     border: "none",
     fontSize: "16px",
-    fontWeight: "600",
+    fontWeight: "700",
     cursor: "pointer",
     marginTop: "8px",
+    boxShadow: "0 2px 8px 0 rgba(124,58,237,0.10)",
+    transition: "background 0.2s",
   },
   version: {
     textAlign: "center",
     marginTop: "30px",
     fontSize: "12px",
-    color: "#9ca3af",
+    color: "white",
+    fontWeight: 500,
   },
 };
