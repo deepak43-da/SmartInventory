@@ -82,8 +82,8 @@ export default defineConfig({
       ],
 
       manifest: {
-        name: 'SmartInventory',
-        short_name: 'SmartInventory',
+        name: 'Share of Shelf ',
+        short_name: 'SOS',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

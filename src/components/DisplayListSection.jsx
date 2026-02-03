@@ -260,7 +260,9 @@ const handleSubmit = async () => {
       setCameraLoading(false);
     }
   };
+  
 
+  
   const retakeImage = () => {
     setCapturedImage(null);
     startCamera();
@@ -279,6 +281,31 @@ const handleSubmit = async () => {
           Product List {networkStatus === "offline" && "(Offline)"}
         </h2>
 
+ {submitLoading === false && quantityValues[displayList[0]?.DisplayID] && (
+        <div style={{ marginBottom: 16 }}>
+          <button
+            onClick={() => setShowCameraModal(true)}
+            style={{
+              backgroundColor: "var(--purple-main)",
+              color: "white",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              border: "none",
+              fontWeight: 600,
+              fontSize: 16,
+              cursor: "pointer",
+              width: "100%",
+              boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
+            }}
+          >
+            Take Image
+          </button>
+        </div>
+      )}
+
+</div>
+
+<div>
         {/* Sync button */}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {networkStatus === "offline" && (
@@ -315,27 +342,7 @@ const handleSubmit = async () => {
       </div>
 
       {/* Camera Take Display Button - Only show after successful submission */}
-      {submitLoading === false && quantityValues[displayList[0]?.DisplayID] && (
-        <div style={{ marginBottom: 16 }}>
-          <button
-            onClick={() => setShowCameraModal(true)}
-            style={{
-              backgroundColor: "var(--purple-main)",
-              color: "white",
-              padding: "12px 24px",
-              borderRadius: "8px",
-              border: "none",
-              fontWeight: 600,
-              fontSize: 16,
-              cursor: "pointer",
-              width: "100%",
-              boxShadow: "0 2px 8px rgba(59, 130, 246, 0.2)",
-            }}
-          >
-            Take Image
-          </button>
-        </div>
-      )}
+     
 
       {/* Display list with quantity fields */}
       {displayList.length === 0 && !loadingDisplayList && (
@@ -353,6 +360,8 @@ const handleSubmit = async () => {
         </div>
       )}
 
+      
+
       {displayList.length > 0 && (
         <div>
           {displayList.map((item) => (
@@ -367,6 +376,7 @@ const handleSubmit = async () => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                columnGap: 15,
               }}
             >
               <div>
