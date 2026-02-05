@@ -17,6 +17,7 @@ const DisplayListSection = ({
   const dispatch = useDispatch();
   const { isOnline } = useNetworkStatus();
   const [quantityValues, setQuantityValues] = useState({});
+  const [bulkQuantity, setBulkQuantity] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
@@ -38,6 +39,7 @@ const DisplayListSection = ({
       initialValues[item.DisplayID] = item.Quantity || "";
     });
     setQuantityValues(initialValues);
+    setBulkQuantity("");
   }, [displayList]);
 
   // Start camera when modal opens
@@ -132,6 +134,22 @@ const DisplayListSection = ({
         [displayId]: value
       }));
     }
+  };
+
+  const handleApplyAll = () => {
+    if (bulkQuantity === "" || !/^\d+$/.test(bulkQuantity)) {
+      toast.error("Please enter facing value");
+      return;
+    }
+
+
+    setQuantityValues(prev => {
+      const updated = { ...prev };
+      displayList.forEach(item => {
+        updated[item.DisplayID] = bulkQuantity;
+      });
+      return updated;
+    });
   };
 
 const validateForm = () => {
@@ -271,17 +289,19 @@ const handleSubmit = async () => {
   return (
     <div style={{ padding: 20 }}>
       {/* Header */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 16,
-      }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
         <h2 style={{ fontWeight: 700, fontSize: 18, color: "#111827" }}>
           Product List {networkStatus === "offline" && "(Offline)"}
         </h2>
 
- {submitLoading === false && quantityValues[displayList[0]?.DisplayID] && (
+        {submitLoading === false && quantityValues[displayList[0]?.DisplayID] && (
         <div style={{ marginBottom: 16 }}>
           <button
             onClick={() => setShowCameraModal(true)}
@@ -302,10 +322,65 @@ const handleSubmit = async () => {
           </button>
         </div>
       )}
+      </div>
 
-</div>
+<div style={{display:"flex", justifyContent:"space-between", gap:12}}>
+      <div
+        style={{
+          display: "flex",
+          gap: 12,
+          alignItems: "center",
+          marginBottom: 16,
+          // justifyContent
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 14, fontWeight: 500 }}>Facing:</label>
+          <input
+            type="text"
+            value={bulkQuantity}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === "" || /^\d+$/.test(value)) {
+                setBulkQuantity(value);
+              }
+            }}
+            style={{
+              width: 80,
+              padding: "8px 12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: "6px",
+              fontSize: 16,
+              textAlign: "center",
+              backgroundColor: "#f9fafb",
+              margin:"0px",
+            }}
+            placeholder="-"
+          />
+        </div>
+        <button
+          onClick={handleApplyAll}
+          style={{
+            backgroundColor: "var(--purple-main)",
+            color: "white",
+            padding: "10px 18px",
+            borderRadius: "8px",
+            border: "none",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: displayList.length === 0 ? "not-allowed" : "pointer",
+            minWidth: 120,
+            opacity: displayList.length === 0 ? 0.7 : 1,
+          }}
+          disabled={displayList.length === 0}
+        >
+          Apply to All
+        </button>
+      </div>
 
-<div>
+      
+
+      <div>
         {/* Sync button */}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           {networkStatus === "offline" && (
@@ -340,7 +415,7 @@ const handleSubmit = async () => {
           )}
         </div>
       </div>
-
+</div>
       {/* Camera Take Display Button - Only show after successful submission */}
      
 
@@ -391,7 +466,7 @@ const handleSubmit = async () => {
               </div>
               
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <label style={{ fontSize: 14, fontWeight: 500 }}>Qty:</label>
+                <label style={{ fontSize: 14, fontWeight: 500 }}>Facing:</label>
                 <input
                   type="text"
                   value={quantityValues[item.DisplayID] || ""}

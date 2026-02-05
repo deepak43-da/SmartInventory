@@ -366,7 +366,7 @@ export const fetchTasks = (userId) => async (dispatch, getState) => {
 
 async function fetchTasksOnline(userId, dispatch) {
   const scheduleRes = await axios.post(
-    "https://tamimi.impulseglobal.net/Report/RamadhanApp/API/Schedules.asmx/DailySchedule_Get",
+    "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/DailySchedule_Get",
     { StoreID: userId },
     { headers: { "Content-Type": "application/json" } },
   );
