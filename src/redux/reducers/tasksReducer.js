@@ -37,7 +37,7 @@ export default function tasksReducer(state = initialState, action) {
 
     case "UPDATE_DISPLAY_STATUS": {
       const { scheduleId, displayId, stage, imageUrl, localOnly } = action.payload;
-      
+
       return {
         ...state,
         tasks: state.tasks.map((task) => {
@@ -47,7 +47,7 @@ export default function tasksReducer(state = initialState, action) {
             displays: task.displays.map((display) => {
               if (display.DisplayID !== displayId) return display;
               let updated = { ...display };
-              
+
               if (stage.toLowerCase() === "before") {
                 updated.BeforeImageURL = imageUrl;
                 if (localOnly) updated.BeforeImageLocal = true;
@@ -56,14 +56,14 @@ export default function tasksReducer(state = initialState, action) {
                 updated.AfterImageURL = imageUrl;
                 if (localOnly) updated.AfterImageLocal = true;
               }
-              
+
               // Mark as completed only if both images exist (either local or remote)
               const hasBefore = updated.BeforeImageURL;
               const hasAfter = updated.AfterImageURL;
               if (hasBefore && hasAfter) {
                 updated.Completed = "Yes";
               }
-              
+
               return updated;
             }),
           };
@@ -104,13 +104,13 @@ export default function tasksReducer(state = initialState, action) {
         ...state,
         queue: state.queue.map((item) =>
           item.id === action.payload.id
-            ? { 
-                ...item, 
-                retryCount: action.payload.retryCount,
-                lastError: action.payload.error,
-                lastAttempt: action.payload.timestamp,
-                status: action.payload.retryCount >= 3 ? "failed" : "pending"
-              }
+            ? {
+              ...item,
+              retryCount: action.payload.retryCount,
+              lastError: action.payload.error,
+              lastAttempt: action.payload.timestamp,
+              status: action.payload.retryCount >= 3 ? "failed" : "pending"
+            }
             : item,
         ),
       };
@@ -140,27 +140,56 @@ export default function tasksReducer(state = initialState, action) {
             ),
         ),
       };
-      // Add this case to your existing reducer
-case "ADD_TO_SYNC_QUEUE":
-  return {
-    ...state,
-    queue: [
-      ...state.queue,
-      {
-        ...action.payload,
-        id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString(),
-        status: "pending",
-      },
-    ],
-  };
+    // Add this case to your existing reducer
+    case "ADD_TO_SYNC_QUEUE":
+      return {
+        ...state,
+        queue: [
+          ...state.queue,
+          {
+            ...action.payload,
+            id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: new Date().toISOString(),
+            status: "pending",
+          },
+        ],
+      };
 
-    case "CLEANUP_DATA":
       return {
         ...state,
         offlineImages: action.payload.offlineImages,
         queue: action.payload.queue,
       };
+
+    case "UPDATE_DISPLAY_IMAGE":
+      return {
+        ...state,
+        tasks: state.tasks.map((task) => {
+          // Find the task containing the display, or if the task structure is flat enough
+          // Based on previous code, displays are inside tasks (schedules)
+          if (!task.displays.some((d) => d.DisplayID === action.payload.displayId)) {
+            return task;
+          }
+          return {
+            ...task,
+            displays: task.displays.map((display) => {
+              if (display.DisplayID !== action.payload.displayId) return display;
+              return {
+                ...display,
+                imageData: display.imageData.map((img) => {
+                  if (img.ID !== action.payload.imageId) return img;
+                  return {
+                    ...img,
+                    DTOImage: action.payload.DTOImage,
+                    ImageURL: action.payload.ImageURL || img.ImageURL, // Update URL if provided
+                  };
+                }),
+              };
+            }),
+          };
+        }),
+      };
+
 
     default:
       return state;

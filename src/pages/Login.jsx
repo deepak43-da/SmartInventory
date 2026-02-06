@@ -286,6 +286,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { fetchTasks } from "../redux/actions/tasksActions";
 import axios from "axios";
+import Version from "../components/Version";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -454,8 +455,9 @@ export default function Login() {
         >
           Login
         </Button>
-
-        <div style={styles.version}>App Version 1.0.0</div>
+<div style={{marginTop:"20px"}}>
+        <Version color="white" backgroundColor="none"/>
+        </div>
       </div>
     </div>
   );

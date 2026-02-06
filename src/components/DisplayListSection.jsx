@@ -90,7 +90,6 @@ const DisplayListSection = ({
       setIsCameraReady(false);
     }
   };
-
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
@@ -151,6 +150,7 @@ const DisplayListSection = ({
       return updated;
     });
   };
+console.log(isOnline, offlineImages.length, queue.length, "deepak");
 
   const validateForm = () => {
     let hasError = false;

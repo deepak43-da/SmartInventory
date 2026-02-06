@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks } from "../redux/actions/tasksActions";
@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { useNetworkStatus } from "../components/useNetworkStatus";
 import { store, persistor } from "../redux/store";
 import useDailyISTCleanup from "../hooks/useDailyISTCleanup";
+import Version from "../components/Version";
 
 export default function TaskList() {
   const { id } = useParams();
@@ -24,7 +25,22 @@ export default function TaskList() {
 
   // Use displays from the converted API response
   const displays = useSelector((state) => state.tasks.tasks?.[0]?.displays || []);
-  const loading = false; // Optionally wire to a loading state in redux
+  const loading = false; // Define missing loading variable
+  // lazy loading state
+  const [visibleCount, setVisibleCount] = useState(10);
+  const observer = useRef();
+
+  const lastElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && visibleCount < displays.length) {
+        setVisibleCount(prevCount => prevCount + 10);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, displays.length, visibleCount]);
+
   console.log(displays, "displays in TaskList");
 
   const handleLogout = () => {
@@ -165,12 +181,12 @@ export default function TaskList() {
           <div
             style={{
               overflowY: "auto",
-              maxHeight: "66vh",
+              maxHeight: "75vh",
               marginBottom: "10px",
               fontWeight: "bold",
             }}
           >
-            {displays.map((display) => (
+            {displays.slice(0, visibleCount).map((display, index) => (
               <div
                 style={{
                   marginBottom: "20px",
@@ -183,6 +199,7 @@ export default function TaskList() {
                   gap: "16px",
                 }}
                 key={display.DisplayID}
+                ref={index === displays.slice(0, visibleCount).length - 1 ? lastElementRef : null}
                 onClick={() => {
                   navigate(`/task/${encodeURIComponent(display.DisplayID)}`);
                 }}
@@ -240,10 +257,11 @@ export default function TaskList() {
         )}
       </div>
 
-      {/* <div className="footer fixed-footer">
-        <div>Evening (3pm till Before 6pm)</div>
-        <div>Night (6pm till Before Midnight)</div>
-      </div> */}
+      <div className="footer fixed-footer">
+        <Version/>
+
+      </div>
+
     </div>
   );
 }
