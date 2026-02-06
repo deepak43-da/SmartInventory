@@ -8,7 +8,6 @@ import Stack from "@mui/material/Stack";
 import "./taskList.css";
 import { toast } from "react-toastify";
 import { useNetworkStatus } from "../components/useNetworkStatus";
-import moment from "moment-timezone";
 import { store, persistor } from "../redux/store";
 import useDailyISTCleanup from "../hooks/useDailyISTCleanup";
 
@@ -23,37 +22,24 @@ export default function TaskList() {
     (state) => state.tasks || {},
   );
 
-  const tasks = useSelector((state) => state.tasks.tasks);
+  // Use displays from the converted API response
+  const displays = useSelector((state) => state.tasks.tasks?.[0]?.displays || []);
   const loading = false; // Optionally wire to a loading state in redux
+  console.log(displays, "displays in TaskList");
 
   const handleLogout = () => {
     localStorage.removeItem("auth");
-    localStorage.removeItem("id");
+    // localStorage.removeItem("id");
+    localStorage.removeItem("StoreID");
+    localStorage.removeItem("StoreName");
+    localStorage.removeItem("Type");
+    localStorage.removeItem("UserID");
+    localStorage.removeItem("maindata");
     toast.error("Logout successful!");
     navigate("/");
   };
 
-  const TZ = "Asia/Riyadh";
-  const isTaskActive = (task) => {
-    const now = moment().tz(TZ);
-
-    const start = moment.tz(task.StartDate, TZ);
-    const end = moment.tz(task.EndDate, TZ).endOf("day");
-
-    if (!now.isBetween(start, end, null, "[]")) return false;
-
-    const hour = now.hour();
-
-    if (task.TimeSlot === "Evening") {
-      return hour >= 15 && hour < 18;
-    }
-
-    if (task.TimeSlot === "Night") {
-      return hour >= 18 && hour <= 23;
-    }
-
-    return false;
-  };
+  // Remove isTaskActive and time logic, not needed for displays
 
   const auth = localStorage.getItem("auth");
 
@@ -161,7 +147,7 @@ export default function TaskList() {
       </div>
 
       <div className="scrollable-tasks">
-        <h3 className="page-title">Today's Tasks</h3>
+        <h3 className="page-title">Display list</h3>
         {loading ? (
           Array.from({ length: skeletonCount }).map((_, index) => (
             <div key={index} className="task-card">
@@ -173,8 +159,8 @@ export default function TaskList() {
               </Stack>
             </div>
           ))
-        ) : tasks.length === 0 ? (
-          <div className="no-tasks">No tasks found</div>
+        ) : displays.length === 0 ? (
+          <div className="no-tasks">No displays found</div>
         ) : (
           <div
             style={{
@@ -184,83 +170,72 @@ export default function TaskList() {
               fontWeight: "bold",
             }}
           >
-            {tasks.map((t) => {
-              const active = isTaskActive(t);
-              return (
-                <div
-                  style={{
-                    marginBottom: "20px",
-                    cursor: active ? "pointer" : "not-allowed",
-                    background: active
-                      ? "var(--purple-main)"
-                      : "var(--purple-accent)",
-                      borderRadius: "12px",padding: "16px",
-                  }}
-                  key={t.ActivityID}
-                  onClick={() => {
-                    if (true) {
-                      const url = `/task/${encodeURIComponent(
-                        t?.Store,
-                      )}/${encodeURIComponent(
-                        t.ActivityID,
-                      )}/${encodeURIComponent(t.StoreID)}/${encodeURIComponent(
-                        t.SupplierID,
-                      )}/${encodeURIComponent(t.ScheduleID)}/${encodeURIComponent(
-                        t.Supplier,
-                      )}/${encodeURIComponent(t.Activity)}/${encodeURIComponent(
-                        t.Duration,
-                      )}/${encodeURIComponent(t.DOWork)}`;
-                      navigate(url);
-                    }
-                  }}
-                  // className={`task-card ${active ? "active" : "inactive"}`}
-                >
-                  <div className="task-row">
-                    <span className="task-title">
-                      {t.Supplier} - {t.Activity}
-                    </span>
-                    <span
-                      className={`status-pill ${
-                        active ? "active" : "inactive"
-                      }`}
-                    >
-                      {active ? "Active" : "Inactive"}
-                    </span>
+            {displays.map((display) => (
+              <div
+                style={{
+                  marginBottom: "20px",
+                  cursor: "pointer",
+                  background: "var(--purple-main)",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  display: "flex",
+                  // alignItems: "center",
+                  gap: "16px",
+                }}
+                key={display.DisplayID}
+                onClick={() => {
+                  navigate(`/task/${encodeURIComponent(display.DisplayID)}`);
+                }}
+              >
+                {display.ImageURL ? (
+                  <img
+                    src={display.ImageURL}
+                    alt={display.DisplayID}
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                    }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "80px",
+                      height: "80px",
+                      borderRadius: "8px",
+                      background: "#ffffff22",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "14px",
+                      textAlign: "center",
+                      padding: "6px",
+                      border: "1px solid #ffffff33",
+                    }}
+                  >
+                    {display.DisplayID}
                   </div>
-                  <div className="task-id">Hrs Book: {t.Duration} hrs</div>
+                )}
 
-                  <div className="task-id">
-                    {(() => {
-                      // Count displays completed either by backend or by offline images
-                      const displayCount = t.displays?.length || 0;
-                      let completedCount = 0;
-                      if (Array.isArray(t.displays)) {
-                        completedCount = t.displays.filter((d) => {
-                          if (d.Completed === "Yes") return true;
-                          // Check for offline images for both before and after
-                          const beforeImg = offlineImages.find(
-                            (img) =>
-                              img.metadata?.displayId === d.DisplayID &&
-                              img.metadata?.stage?.toLowerCase() === "before",
-                          );
-                          const afterImg = offlineImages.find(
-                            (img) =>
-                              img.metadata?.displayId === d.DisplayID &&
-                              img.metadata?.stage?.toLowerCase() === "after",
-                          );
-                          return beforeImg && afterImg;
-                        }).length;
-                      }
-                      return `Display Completed: ${completedCount}/${displayCount}`;
-                    })()}
+                <div>
+                  <div
+                    className="task-title"
+                    style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "8px", color: "white" }}
+                  >
+                    Display ID : {display.DisplayID}
                   </div>
-
-                  <div className="task-info">
-                    <div className="info-row">🕒 {t.TimeSlot}</div>
+                  <div style={{ fontSize: "14px", color: "white" }}>
+                    Products: {display.products?.length || 0}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>

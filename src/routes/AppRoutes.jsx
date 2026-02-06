@@ -12,7 +12,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Login />} />
       <Route path="/read/:id" element={<TaskList />} />
       <Route
-        path="/task/:Store/:ActivityID/:StoreID/:SupplierID/:ScheduleID/:Supplier/:Activity/:Duration/:DOWork"
+        path="/task/:displayId"
         element={<TaskDetail />}
       />
      

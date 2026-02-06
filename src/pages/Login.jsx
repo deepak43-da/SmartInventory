@@ -325,7 +325,7 @@ export default function Login() {
 
       // Clear user session data but NOT offline data
       localStorage.removeItem("auth");
-      localStorage.removeItem("id");
+      // localStorage.removeItem("id");
 
       // DO NOT clear: localStorage.removeItem("maindata");
       // DO NOT clear: Redux Persist data (managed by persistConfig)
