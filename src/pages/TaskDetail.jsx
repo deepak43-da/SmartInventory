@@ -1020,7 +1020,7 @@ export default function TaskDetail() {
       navigate("/");
     }
   }, [auth]);
-  console.log(queue ,isOnline, offlineImages.length, queue.length, "deepak");
+  console.log(queue, isOnline, offlineImages.length, queue.length, "deepak");
 
   // Initialize state from existing data
   useEffect(() => {
@@ -1054,19 +1054,95 @@ export default function TaskDetail() {
   };
 
   // Submit facing values for all products
+  //   const handleSubmit = async () => {
+  //     setSubmitting(true);
+
+  //     // Reset errors
+  //     setFacingErrors({});
+
+  //     const userId = localStorage.getItem("UserID");
+  //     const now = moment().format("YYYY-MM-DD HH:mm:ss");
+
+  //     // Check for missing values
+  //     const errors = {};
+  //     let hasErrors = false;
+
+  //     products.forEach((p) => {
+  //       const facingValue = facing[p.ID];
+  //       if (!facingValue || facingValue.toString().trim() === "") {
+  //         errors[p.ID] = true;
+  //         hasErrors = true;
+  //       }
+  //     });
+
+  //     if (hasErrors) {
+  //       setFacingErrors(errors);
+  //       toast.error("Please enter Facing for all products");
+  //       setSubmitting(false);
+  //       return;
+  //     }
+  //     const payload = products.map((p) => ({
+  //       ID: p.ID,
+  //       Facing: Number(facing[p.ID]),
+  //       DTOEntry: now,
+  //       UserID: Number(userId),
+  //     }));
+
+  //     try {
+  //       if (isOnline) {
+
+
+
+  // const formData = new URLSearchParams();
+  // formData.append("jsonData", JSON.stringify(payload));
+
+  // await fetch(
+  //   "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkInputUpload",
+  //   {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/x-www-form-urlencoded",
+  //     },
+  //     body: formData.toString(),
+  //   }
+  // )
+  //   .then(res => res.text())
+  //   .then(data => console.log(data))
+  //   .catch(err => console.error(err));
+
+
+  //         toast.success("Submitted successfully");
+  //         setIsSubmitted(true);
+  //       } else {
+  //         dispatch({
+  //           type: "ADD_TO_SYNC_QUEUE",
+  //           payload: {
+  //             type: "QUANTITY_SUBMIT",
+  //             data: payload,
+  //             retryCount: 0,
+  //             maxRetries: 3,
+  //           },
+  //         });
+  //         toast.info("Saved offline. Will sync when online.");
+  //         setIsSubmitted(true);
+  //       }
+  //     } catch (e) {
+  //       toast.error("Submission failed");
+  //     }
+  //     setSubmitting(false);
+  //   };
+
   const handleSubmit = async () => {
     setSubmitting(true);
-    
-    // Reset errors
     setFacingErrors({});
-    
+
     const userId = localStorage.getItem("UserID");
     const now = moment().format("YYYY-MM-DD HH:mm:ss");
-    
-    // Check for missing values
+
+    // Validate missing values
     const errors = {};
     let hasErrors = false;
-    
+
     products.forEach((p) => {
       const facingValue = facing[p.ID];
       if (!facingValue || facingValue.toString().trim() === "") {
@@ -1074,33 +1150,54 @@ export default function TaskDetail() {
         hasErrors = true;
       }
     });
-    
+
     if (hasErrors) {
       setFacingErrors(errors);
       toast.error("Please enter Facing for all products");
       setSubmitting(false);
       return;
     }
-    
+
     const payload = products.map((p) => ({
       ID: p.ID,
       Facing: Number(facing[p.ID]),
       DTOEntry: now,
       UserID: Number(userId),
     }));
-    
+
     try {
       if (isOnline) {
-        await fetch(
+        const formData = new URLSearchParams();
+        formData.append("jsonData", JSON.stringify(payload));
+
+        const response = await fetch(
           "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkInputUpload",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          },
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: formData.toString(),
+          }
         );
+
+        if (!response.ok) {
+          throw new Error("Server error");
+        }
+
+        const data = await response.text();
+        console.log("API Response:", data);
+
         toast.success("Submitted successfully");
         setIsSubmitted(true);
+        // Update Redux state
+        dispatch({
+          type: "UPDATE_PRODUCT_FACING",
+          payload: {
+            displayId: display.DisplayID,
+            facingData: payload,
+          },
+        });
       } else {
         dispatch({
           type: "ADD_TO_SYNC_QUEUE",
@@ -1111,14 +1208,26 @@ export default function TaskDetail() {
             maxRetries: 3,
           },
         });
+
         toast.info("Saved offline. Will sync when online.");
         setIsSubmitted(true);
+        // Also update local state for UI consistency
+        dispatch({
+          type: "UPDATE_PRODUCT_FACING",
+          payload: {
+            displayId: display.DisplayID,
+            facingData: payload,
+          },
+        });
       }
-    } catch (e) {
+    } catch (error) {
+      console.error("Submission error:", error);
       toast.error("Submission failed");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
+
 
   // Apply to All Facing
   const handleApplyAll = () => {
@@ -1283,7 +1392,7 @@ export default function TaskDetail() {
             }}
             onClick={handleSyncOfflineImages}
           >
-            Sync 
+            Sync
           </button>
           <button
             style={{
@@ -1338,7 +1447,7 @@ export default function TaskDetail() {
           gap: 16,
           margin: "24px 0 16px 0",
           backgroundColor: "var(--purple-main)",
-          borderRadius: "8px",  
+          borderRadius: "8px",
           padding: "12px 18px",
         }}
       >
@@ -1378,7 +1487,7 @@ export default function TaskDetail() {
           </div>
         )}
         <div>
-          <div style={{ fontSize: 18, fontWeight: 700 , color: "white" }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: "white" }}>
             {display?.DisplayID}
           </div>
           <div style={{ fontSize: 14, color: "white" }}>
@@ -1719,7 +1828,7 @@ export default function TaskDetail() {
                 style={{
                   width: 80,
                   padding: "8px 12px",
-                  border:"1px solid #e5e7eb",
+                  border: "1px solid #e5e7eb",
                   borderRadius: "6px",
                   fontSize: 16,
                   textAlign: "center",
@@ -1754,13 +1863,13 @@ export default function TaskDetail() {
               <div
                 key={p.ID}
                 style={{
-                  border: facingErrors[p.ID] 
+                  border: facingErrors[p.ID]
                     ? "1px solid #ef4444" // Red border for error
                     : "1px solid #e5e7eb",
                   padding: 12,
                   borderRadius: 8,
                   marginBottom: 10,
-                  background: facingErrors[p.ID] 
+                  background: facingErrors[p.ID]
                     ? "#fef2f2" // Light red background for error
                     : "#fff",
                   display: "flex",
@@ -1785,13 +1894,13 @@ export default function TaskDetail() {
                   style={{
                     width: 80,
                     padding: "8px 12px",
-                    border: facingErrors[p.ID] 
+                    border: facingErrors[p.ID]
                       ? "2px solid #ef4444"  // Red border for error
                       : "1px solid #e5e7eb", // Normal border
                     borderRadius: 6,
                     fontSize: 15,
                     textAlign: "center",
-                    backgroundColor: facingErrors[p.ID] 
+                    backgroundColor: facingErrors[p.ID]
                       ? "#fef2f2"  // Light red background for error
                       : "#f9fafb", // Normal background
                     outline: "none",
@@ -1812,27 +1921,27 @@ export default function TaskDetail() {
             ))}
             <button
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || isSubmitted}
               style={{
-                backgroundColor: submitting ? "#9ca3af" : "var(--purple-main)",
+                backgroundColor: (submitting || isSubmitted) ? "#9ca3af" : "var(--purple-main)",
                 color: "white",
                 padding: "14px 24px",
                 borderRadius: "8px",
                 border: "none",
                 fontWeight: 600,
                 fontSize: 16,
-                cursor: submitting ? "not-allowed" : "pointer",
+                cursor: (submitting || isSubmitted) ? "not-allowed" : "pointer",
                 width: "100%",
-                opacity: submitting ? 0.7 : 1,
+                opacity: (submitting || isSubmitted) ? 0.7 : 1,
                 marginTop: 10,
                 marginBottom: "20px",
               }}
             >
-              {submitting ? "Submitting..." : "Submit"}
+              {submitting ? "Submitting..." : isSubmitted ? "Submitted" : "Submit"}
             </button>
           </div>
           <div className="footer fixed-footer">
-            <Version/>
+            <Version />
           </div>
         </>)}
       </div>

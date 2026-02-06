@@ -165,8 +165,6 @@ export default function tasksReducer(state = initialState, action) {
       return {
         ...state,
         tasks: state.tasks.map((task) => {
-          // Find the task containing the display, or if the task structure is flat enough
-          // Based on previous code, displays are inside tasks (schedules)
           if (!task.displays.some((d) => d.DisplayID === action.payload.displayId)) {
             return task;
           }
@@ -181,8 +179,36 @@ export default function tasksReducer(state = initialState, action) {
                   return {
                     ...img,
                     DTOImage: action.payload.DTOImage,
-                    ImageURL: action.payload.ImageURL || img.ImageURL, // Update URL if provided
+                    ImageURL: action.payload.ImageURL || img.ImageURL,
                   };
+                }),
+              };
+            }),
+          };
+        }),
+      };
+
+    case "UPDATE_PRODUCT_FACING":
+      return {
+        ...state,
+        tasks: state.tasks.map((task) => {
+          if (!task.displays.some((d) => d.DisplayID === action.payload.displayId)) {
+            return task;
+          }
+          return {
+            ...task,
+            displays: task.displays.map((display) => {
+              if (display.DisplayID !== action.payload.displayId) return display;
+              return {
+                ...display,
+                products: display.products.map((product) => {
+                  const updatedValue = action.payload.facingData.find(
+                    (f) => f.ID === product.ID
+                  );
+                  if (updatedValue) {
+                    return { ...product, Facing: updatedValue.Facing };
+                  }
+                  return product;
                 }),
               };
             }),
