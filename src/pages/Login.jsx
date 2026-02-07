@@ -317,25 +317,44 @@ export default function Login() {
   //   }
   // };
 
-  const checkAndPerformCleanup = () => {
-    const lastCleanup = localStorage.getItem("last_data_cleanup_timestamp");
-    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
-    const now = new Date();
+  // const checkAndPerformCleanup = () => {
+  //   const lastCleanup = localStorage.getItem("last_data_cleanup_timestamp");
+  //   const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+  //   const now = new Date();
 
-    if (!lastCleanup || now - new Date(lastCleanup) > twentyFourHoursInMs) {
-      console.log("Performing 24-hour data cleanup on login...");
+  //   if (!lastCleanup || now - new Date(lastCleanup) > twentyFourHoursInMs) {
+  //     console.log("Performing 24-hour data cleanup on login...");
 
-      // Clear user session data but NOT offline data
+  //     // Clear user session data but NOT offline data
+  //     localStorage.removeItem("auth");
+  //     // localStorage.removeItem("id");
+
+  //     // DO NOT clear: localStorage.removeItem("maindata");
+  //     // DO NOT clear: Redux Persist data (managed by persistConfig)
+
+  //     // Update cleanup timestamp
+  //     localStorage.setItem("last_data_cleanup_timestamp", now.toISOString());
+  //   }
+  // };
+
+
+
+  const checkAndPerformCleanup = async () => {
+    const lastCleanupDate = localStorage.getItem("last_cleanup_date");
+  
+    const saudiToday = new Date().toLocaleDateString("en-CA", {
+      timeZone: "Asia/Riyadh",
+    }); // gives YYYY-MM-DD format
+  
+    if (lastCleanupDate !== saudiToday) {
+      console.log("New Saudi day detected. Performing cleanup...");
+      await persistor.purge();
       localStorage.removeItem("auth");
-      // localStorage.removeItem("id");
-
-      // DO NOT clear: localStorage.removeItem("maindata");
-      // DO NOT clear: Redux Persist data (managed by persistConfig)
-
-      // Update cleanup timestamp
-      localStorage.setItem("last_data_cleanup_timestamp", now.toISOString());
+  
+      localStorage.setItem("last_cleanup_date", saudiToday);
     }
   };
+  
 
   const handleLogin = async () => {
     if (!email || !password) return;

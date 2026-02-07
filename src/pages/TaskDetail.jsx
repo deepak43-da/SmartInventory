@@ -2562,6 +2562,9 @@ export default function TaskDetail() {
                       marginBottom: 16,
                       backgroundColor: "#f3f4f6",
                     }}
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                    }}
                   />
                   <div style={{ display: "flex", gap: 12 }}>
                     <button

@@ -44,8 +44,8 @@ export default function TaskList() {
   console.log(displays, "displays in TaskList");
 
   const handleLogout = async () => {
-    await persistor.purge();
-    localStorage.removeItem("persist:root");
+    // await persistor.purge();
+    // localStorage.removeItem("persist:root");
     localStorage.removeItem("auth");
     localStorage.removeItem("StoreID");
     localStorage.removeItem("StoreName");
