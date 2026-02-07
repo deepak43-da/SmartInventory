@@ -2580,48 +2580,58 @@ export default function TaskDetail() {
                     </button>
                     <button
                       onClick={async () => {
-                        if (!capturedImage) return;
-                        const userId = localStorage.getItem("UserID") || "1";
-                        const slotId = imageData[0]?.ID;
-                        if (!slotId) {
-                          toast.error("No image slot available");
-                          return;
-                        }
+                        if (!capturedImage || imageSubmitting) return;
+                        setImageSubmitting(true);
 
-                        const metadata = {
-                          userId: userId,
-                          displayId: display.DisplayID,
-                          imgId: slotId,
-                        };
-
-                        try {
-                          const result = await dispatch(captureImageWithOfflineSupport(capturedImage, metadata));
-                          if (result.success) {
-                            toast.success(isOnline ? "Image submitted" : "Image saved offline");
-                            setShowCameraModal(false);
-                            setCapturedImage(null);
-                            stopCamera();
-                          } else {
-                            toast.error(result.message || "Capture failed");
+                        // Use a small timeout to allow React to render the loading state
+                        // before the potentially heavy dispatch starts.
+                        setTimeout(async () => {
+                          const userId = localStorage.getItem("UserID") || "1";
+                          const slotId = imageData[0]?.ID;
+                          if (!slotId) {
+                            toast.error("No image slot available");
+                            setImageSubmitting(false);
+                            return;
                           }
-                        } catch (e) {
-                          console.error(e);
-                          toast.error("Image capture failed");
-                        }
+
+                          const metadata = {
+                            userId: userId,
+                            displayId: display.DisplayID,
+                            imgId: slotId,
+                          };
+
+                          try {
+                            const result = await dispatch(captureImageWithOfflineSupport(capturedImage, metadata));
+                            if (result.success) {
+                              toast.success(isOnline ? "Image submitted" : "Image saved offline");
+                              setShowCameraModal(false);
+                              setCapturedImage(null);
+                              stopCamera();
+                            } else {
+                              toast.error(result.message || "Capture failed");
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            toast.error("Image capture failed");
+                          } finally {
+                            setImageSubmitting(false);
+                          }
+                        }, 50);
                       }}
+                      disabled={imageSubmitting}
                       style={{
                         flex: 1,
-                        backgroundColor: "var(--purple-main)",
+                        backgroundColor: imageSubmitting ? "#9ca3af" : "var(--purple-main)",
                         color: "white",
                         padding: "14px",
                         borderRadius: "8px",
                         border: "none",
                         fontWeight: 600,
                         fontSize: 16,
-                        cursor: "pointer",
+                        cursor: imageSubmitting ? "not-allowed" : "pointer",
                       }}
                     >
-                      Confirm
+                      {imageSubmitting ? "Confirming..." : "Confirm"}
                     </button>
                   </div>
                 </div>

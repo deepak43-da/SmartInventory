@@ -1,8 +1,8 @@
 
 import { configureStore } from "@reduxjs/toolkit";
-import { 
-  persistStore, 
-  persistReducer, 
+import {
+  persistStore,
+  persistReducer,
   FLUSH,
   REHYDRATE,
   PAUSE,
@@ -27,7 +27,19 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        ignoredActions: [
+          FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER,
+          "ADD_TO_SYNC_QUEUE",
+          "UPDATE_DISPLAY_IMAGE",
+          "CAPTURE_IMAGE"
+        ],
+        // Also ignore the base64 data paths if needed, 
+        // but ignoring the actions and knowing it's dev-only is usually enough.
+        // For maximum performance we can also ignore paths:
+        ignoredPaths: ["tasks.queue", "tasks.offlineImages", "tasks.tasks"],
+      },
+      immutableCheck: {
+        ignoredPaths: ["tasks.queue", "tasks.offlineImages", "tasks.tasks"],
       },
     }),
 });

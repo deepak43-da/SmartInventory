@@ -26,13 +26,13 @@ export const getNextISTMidnight = () => {
   const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
   const utcNow = now.getTime() + now.getTimezoneOffset() * 60000;
   const istNow = new Date(utcNow + istOffset);
-  
+
   const next = new Date(istNow);
   next.setHours(0, 0, 1, 0);
   if (istNow >= next) {
     next.setDate(next.getDate() + 1);
   }
-  
+
   const localNext = new Date(
     next.getTime() - istOffset - next.getTimezoneOffset() * 60000,
   );
@@ -165,7 +165,7 @@ export const syncQueue = () => async (dispatch, getState) => {
     } catch (error) {
       console.error(`Sync failed for item ${item.id}:`, error);
       failed++;
-      
+
       const newRetryCount = (item.retryCount || 0) + 1;
       dispatch({
         type: OFFLINE_ACTION_TYPES.SYNC_FAILED,
@@ -186,12 +186,12 @@ export const syncQueue = () => async (dispatch, getState) => {
 
 async function uploadImage(data) {
   const { ID, DTOImage, UserID, Image } = data;
-  
+
   const formData = new FormData();
   formData.append("ID", ID);
   formData.append("DTOImage", DTOImage);
   formData.append("UserID", UserID);
-  
+
   let imageFile = Image;
   if (typeof Image === "string" && Image.startsWith("data:image")) {
     const arr = Image.split(",");
@@ -204,7 +204,7 @@ async function uploadImage(data) {
     }
     imageFile = new Blob([u8arr], { type: mime });
   }
-  
+
   formData.append("Image", imageFile);
 
   const response = await axios.post(
@@ -212,7 +212,7 @@ async function uploadImage(data) {
     formData,
     { headers: { "Content-Type": "multipart/form-data" } }
   );
-  
+
   if (!response || response.status !== 200) {
     throw new Error("Image upload failed");
   }
@@ -305,7 +305,7 @@ export const captureImageWithOfflineSupport = (imageData, metadata) => async (di
   });
 
   if (networkStatus === "online") {
-    dispatch(syncQueue());
+    await dispatch(syncQueue());
   }
 
   return { success: true };
