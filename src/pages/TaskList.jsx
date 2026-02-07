@@ -24,6 +24,7 @@ export default function TaskList() {
   );
 
   // Use displays from the converted API response
+  const tasks = useSelector((state) => state.tasks.tasks);
   const displays = useSelector((state) => state.tasks.tasks?.[0]?.displays || []);
   const loading = false; // Define missing loading variable
   // lazy loading state
