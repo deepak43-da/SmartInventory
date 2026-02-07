@@ -2859,24 +2859,22 @@ export default function TaskDetail() {
 
             <button
               onClick={handleSubmit}
-              disabled={submitting || isSubmitted || !areAllFacingsFilled()} // Also check if all facings are filled
+              disabled={submitting || isSubmitted } // Also check if all facings are filled
               style={{
                 backgroundColor: (submitting || isSubmitted)
                   ? "#9ca3af"
-                  : !areAllFacingsFilled()
-                    ? "#d1d5db"
-                    : "var(--purple-main)",
+                  :"var(--purple-main)",
                 color: "white",
                 padding: "14px 24px",
                 borderRadius: "8px",
                 border: "none",
                 fontWeight: 600,
                 fontSize: 16,
-                cursor: (submitting || isSubmitted || !areAllFacingsFilled())
+                cursor: (submitting || isSubmitted )
                   ? "not-allowed"
                   : "pointer",
                 width: "100%",
-                opacity: (submitting || isSubmitted || !areAllFacingsFilled()) ? 0.7 : 1,
+                opacity: (submitting || isSubmitted ) ? 0.7 : 1,
                 marginTop: 10,
                 marginBottom: "20px",
               }}
@@ -2885,9 +2883,7 @@ export default function TaskDetail() {
                 ? "Submitting..."
                 : isSubmitted
                   ? "Submitted"
-                  : !areAllFacingsFilled()
-                    ? "Fill All Facings"
-                    : "Submit"
+                  :  "Submit"
               }
             </button>
 
