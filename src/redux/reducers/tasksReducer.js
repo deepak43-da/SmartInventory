@@ -57,7 +57,6 @@ export default function tasksReducer(state = initialState, action) {
                 if (localOnly) updated.AfterImageLocal = true;
               }
 
-              // Mark as completed only if both images exist (either local or remote)
               const hasBefore = updated.BeforeImageURL;
               const hasAfter = updated.AfterImageURL;
               if (hasBefore && hasAfter) {
@@ -78,7 +77,7 @@ export default function tasksReducer(state = initialState, action) {
           ...state.queue,
           {
             ...action.payload,
-            id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            id: action.payload.id || `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             timestamp: new Date().toISOString(),
             status: "pending",
           },
@@ -89,7 +88,18 @@ export default function tasksReducer(state = initialState, action) {
       return {
         ...state,
         networkStatus: action.payload,
-        syncInProgress: action.payload === "online",
+      };
+
+    case "SYNC_START":
+      return {
+        ...state,
+        syncInProgress: true,
+      };
+
+    case "SYNC_COMPLETE":
+      return {
+        ...state,
+        syncInProgress: false,
       };
 
     case "SYNC_SUCCESS":
@@ -140,26 +150,6 @@ export default function tasksReducer(state = initialState, action) {
             ),
         ),
       };
-    // Add this case to your existing reducer
-    case "ADD_TO_SYNC_QUEUE":
-      return {
-        ...state,
-        queue: [
-          ...state.queue,
-          {
-            ...action.payload,
-            id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            timestamp: new Date().toISOString(),
-            status: "pending",
-          },
-        ],
-      };
-
-      return {
-        ...state,
-        offlineImages: action.payload.offlineImages,
-        queue: action.payload.queue,
-      };
 
     case "UPDATE_DISPLAY_IMAGE":
       return {
@@ -174,7 +164,7 @@ export default function tasksReducer(state = initialState, action) {
               if (display.DisplayID !== action.payload.displayId) return display;
               return {
                 ...display,
-                imageData: display.imageData.map((img) => {
+                imageData: (display.imageData || []).map((img) => {
                   if (img.ID !== action.payload.imageId) return img;
                   return {
                     ...img,
@@ -216,6 +206,15 @@ export default function tasksReducer(state = initialState, action) {
         }),
       };
 
+    case "RESET_STORE":
+      return initialState;
+
+    case "CLEANUP_DATA":
+      return {
+        ...state,
+        offlineImages: action.payload.offlineImages,
+        queue: action.payload.queue,
+      };
 
     default:
       return state;

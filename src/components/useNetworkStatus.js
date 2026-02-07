@@ -1,28 +1,6 @@
-// // hooks/useNetworkStatus.js
-// import { useEffect, useState } from 'react';
-
-// export function useNetworkStatus() {
-//   const [isOnline, setIsOnline] = useState(navigator.onLine);
-
-//   useEffect(() => {
-//     const handleOnline = () => setIsOnline(true);
-//     const handleOffline = () => setIsOnline(false);
-
-//     window.addEventListener('online', handleOnline);
-//     window.addEventListener('offline', handleOffline);
-
-//     return () => {
-//       window.removeEventListener('online', handleOnline);
-//       window.removeEventListener('offline', handleOffline);
-//     };
-//   }, []);
-
-//   return { isOnline };
-// }
-
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { OFFLINE_ACTION_TYPES } from "../redux/actions/offlineActions";
+import { OFFLINE_ACTION_TYPES, syncQueue } from "../redux/actions/offlineActions";
 
 export const useNetworkStatus = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -37,12 +15,7 @@ export const useNetworkStatus = () => {
       });
 
       // Trigger sync when coming back online
-      setTimeout(() => {
-        // Import and dispatch syncQueue action
-        import("../redux/actions/offlineActions").then(({ syncQueue }) => {
-          syncQueue(dispatch, () => window.store.getState());
-        });
-      }, 1000);
+      dispatch(syncQueue());
     };
 
     const handleOffline = () => {

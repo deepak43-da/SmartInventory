@@ -911,6 +911,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { useNetworkStatus } from "../components/useNetworkStatus";
+import { captureImageWithOfflineSupport, syncQueue } from "../redux/actions/offlineActions";
 import { toast } from "react-toastify";
 import { store, persistor } from "../redux/store";
 import useDailyISTCleanup from "../hooks/useDailyISTCleanup";
@@ -1139,7 +1140,6 @@ export default function TaskDetail() {
     const userId = localStorage.getItem("UserID");
     const now = moment().format("YYYY-MM-DD HH:mm:ss");
 
-    // Validate missing values
     const errors = {};
     let hasErrors = false;
 
@@ -1174,30 +1174,13 @@ export default function TaskDetail() {
           "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkInputUpload",
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: formData.toString(),
           }
         );
 
-        if (!response.ok) {
-          throw new Error("Server error");
-        }
-
-        const data = await response.text();
-        console.log("API Response:", data);
-
+        if (!response.ok) throw new Error("Server error");
         toast.success("Submitted successfully");
-        setIsSubmitted(true);
-        // Update Redux state
-        dispatch({
-          type: "UPDATE_PRODUCT_FACING",
-          payload: {
-            displayId: display.DisplayID,
-            facingData: payload,
-          },
-        });
       } else {
         dispatch({
           type: "ADD_TO_SYNC_QUEUE",
@@ -1208,18 +1191,17 @@ export default function TaskDetail() {
             maxRetries: 3,
           },
         });
-
         toast.info("Saved offline. Will sync when online.");
-        setIsSubmitted(true);
-        // Also update local state for UI consistency
-        dispatch({
-          type: "UPDATE_PRODUCT_FACING",
-          payload: {
-            displayId: display.DisplayID,
-            facingData: payload,
-          },
-        });
       }
+
+      setIsSubmitted(true);
+      dispatch({
+        type: "UPDATE_PRODUCT_FACING",
+        payload: {
+          displayId: display.DisplayID,
+          facingData: payload,
+        },
+      });
     } catch (error) {
       console.error("Submission error:", error);
       toast.error("Submission failed");
@@ -1244,48 +1226,7 @@ export default function TaskDetail() {
     setFacingErrors({});
   };
 
-  // Handle image submit for a given imageData entry
-  const handleImageSubmit = async (imgId, imageFile) => {
-    setImageSubmitting(true);
-    const userId = localStorage.getItem("id") || "1";
-    const now = moment().format("YYYY-MM-DD HH:mm:ss");
-    const formData = new FormData();
-    formData.append("ID", imgId);
-    formData.append("DTOImage", now);
-    formData.append("UserID", userId);
-    formData.append("Image", imageFile);
-    try {
-      if (isOnline) {
-        await fetch(
-          "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkImageUpload",
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
-        toast.success("Image submitted");
-      } else {
-        dispatch({
-          type: "ADD_TO_SYNC_QUEUE",
-          payload: {
-            type: "IMAGE_UPLOAD",
-            data: {
-              ID: imgId,
-              DTOImage: now,
-              UserID: userId,
-              Image: imageFile,
-            },
-            retryCount: 0,
-            maxRetries: 3,
-          },
-        });
-        toast.info("Image saved offline. Will sync when online.");
-      }
-    } catch (e) {
-      toast.error("Image upload failed");
-    }
-    setImageSubmitting(false);
-  };
+
 
   // Sync Offline Images
   const handleSyncOfflineImages = async () => {
@@ -1294,50 +1235,21 @@ export default function TaskDetail() {
       return;
     }
 
-    const imageTypes = queue.filter(q => q.type === "IMAGE_UPLOAD");
-    if (imageTypes.length === 0) {
-      toast.info("No offline images to sync.");
+    if (queue.length === 0) {
+      toast.info("No items to sync.");
       return;
     }
 
-    toast.info(`Syncing ${imageTypes.length} images...`);
+    toast.info(`Syncing ${queue.length} items...`);
+    const result = await dispatch(syncQueue());
 
-    for (const item of imageTypes) {
-      try {
-        const formData = new FormData();
-        formData.append("ID", item.data.ID);
-        formData.append("DTOImage", item.data.DTOImage);
-        formData.append("UserID", item.data.UserID);
-        formData.append("Image", item.data.Image);
-
-        await fetch(
-          "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkImageUpload",
-          { method: "POST", body: formData }
-        );
-
-        // Success - remove from queue
-        dispatch({ type: "SYNC_SUCCESS", payload: item.id });
-
-        // Update local display state if this image belongs to the current display
-        const currentDisplayImage = imageData.find(img => img.ID === item.data.ID);
-        if (currentDisplayImage) {
-          dispatch({
-            type: "UPDATE_DISPLAY_IMAGE",
-            payload: {
-              displayId: display.DisplayID,
-              imageId: item.data.ID,
-              DTOImage: item.data.DTOImage,
-              ImageURL: URL.createObjectURL(item.data.Image),
-            },
-          });
-        }
-
-      } catch (error) {
-        console.error("Sync failed for item", item.id, error);
-        toast.error(`Failed to sync image for ID: ${item.data.ID}`);
-      }
+    if (result && result.synced > 0) {
+      toast.success(`Synced ${result.synced} items successfully.`);
+    } else if (result && result.failed > 0) {
+      toast.error(`Failed to sync ${result.failed} items.`);
+    } else {
+      toast.info("Nothing to sync.");
     }
-    toast.success("Sync loop completed");
   };
 
   // Helper to check if all facing values are filled
@@ -1725,60 +1637,32 @@ export default function TaskDetail() {
                     <button
                       onClick={async () => {
                         if (!capturedImage) return;
-                        const userId = localStorage.getItem("id") || "1";
-                        const now = moment().format("YYYY-MM-DD HH:mm:ss");
+                        const userId = localStorage.getItem("UserID") || "1";
                         const slotId = imageData[0]?.ID;
                         if (!slotId) {
                           toast.error("No image slot available");
                           return;
                         }
-                        // Convert base64 to Blob
-                        const arr = capturedImage.split(",");
-                        const mime = arr[0].match(/:(.*?);/)[1];
-                        const bstr = atob(arr[1]);
-                        let n = bstr.length;
-                        const u8arr = new Uint8Array(n);
-                        while (n--) u8arr[n] = bstr.charCodeAt(n);
-                        const imageFile = new File(
-                          [u8arr],
-                          `image_${Date.now()}.jpg`,
-                          { type: mime },
-                        );
-                        const formData = new FormData();
-                        formData.append("ID", slotId);
-                        formData.append("DTOImage", now);
-                        formData.append("UserID", userId);
-                        formData.append("Image", imageFile);
+
+                        const metadata = {
+                          userId: userId,
+                          displayId: display.DisplayID,
+                          imgId: slotId,
+                        };
+
                         try {
-                          if (isOnline) {
-                            await fetch(
-                              "https://tamimi.impulseglobal.net/Report/ShareOfShelf/API/AppService.asmx/ScheduleWorkImageUpload",
-                              { method: "POST", body: formData },
-                            );
-                            toast.success("Image submitted");
+                          const result = await dispatch(captureImageWithOfflineSupport(capturedImage, metadata));
+                          if (result.success) {
+                            toast.success(isOnline ? "Image submitted" : "Image saved offline");
+                            setShowCameraModal(false);
+                            setCapturedImage(null);
+                            stopCamera();
                           } else {
-                            // Offline logic if needed, or rely on queue
-                            // existing dispatch logic here if it was separate, but here we are in inline function
-                            // Copying existing offline logic pattern if needed but simpler to just dispatch success for UI
+                            toast.error(result.message || "Capture failed");
                           }
-
-                          // Update Redux to disable button immediately
-                          dispatch({
-                            type: "UPDATE_DISPLAY_IMAGE",
-                            payload: {
-                              displayId: display.DisplayID,
-                              imageId: slotId,
-                              DTOImage: now,
-                              ImageURL: URL.createObjectURL(imageFile), // Temporary local preview
-                            },
-                          });
-
-                          setShowCameraModal(false);
-                          setCapturedImage(null);
-                          stopCamera();
                         } catch (e) {
-                          console.error(e); // Log error
-                          toast.error("Image upload failed");
+                          console.error(e);
+                          toast.error("Image capture failed");
                         }
                       }}
                       style={{

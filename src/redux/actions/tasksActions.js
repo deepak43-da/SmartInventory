@@ -108,7 +108,6 @@ export const fetchTasks = (userId) => async (dispatch) => {
       target.imageData.push(img);
     });
     // --- Dispatch ---
-    debugger
     dispatch({
 
       type: "SET_TASKS",
