@@ -10,14 +10,14 @@ import {
   PURGE,
   REGISTER
 } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import { persistStorage } from "./persistStorage";
 import rootReducer from "./reducers/rootReducer";
 
 const persistConfig = {
   key: "root",
   version: 1,
-  storage: storage,
-  whitelist: ["tasks"], // Only persist tasks state
+  storage: persistStorage,
+  whitelist: ["tasks"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -287,6 +287,7 @@ import { useDispatch } from "react-redux";
 import { fetchTasks } from "../redux/actions/tasksActions";
 import axios from "axios";
 import Version from "../components/Version";
+import { persistor } from "../redux/store";
 
 export default function Login() {
   const navigate = useNavigate();

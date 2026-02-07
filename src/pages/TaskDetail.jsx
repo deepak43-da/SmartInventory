@@ -1965,7 +1965,7 @@ export default function TaskDetail() {
       navigate("/");
     }
   }, [auth]);
-  console.log(queue, isOnline, offlineImages.length, queue.length, "deepak");
+  console.log(products,queue, isOnline, offlineImages.length, queue.length, "deepak");
 
   // Initialize state from existing data
   useEffect(() => {
@@ -2171,6 +2171,8 @@ export default function TaskDetail() {
   };
 
 
+
+  console.log(products, "products in TaskDetail");
 
   // Sync Offline Images
   const handleSyncOfflineImages = async () => {
@@ -2782,10 +2784,35 @@ export default function TaskDetail() {
                 }}
               >
                 <div style={{ flex: 1 }}>
-                  <div style={{
+
+                <div style={{
                     fontWeight: 600,
                     fontSize: 15,
                     color: isSubmitted ? "#6b7280" : "inherit" // Grey text when disabled
+                  }}>
+                   <img src={p.ProductImageURL} alt="Product Image" style={{ width: 50, height: 50, borderRadius: 5 }}
+                   
+                   onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                   
+                   />
+               
+                 
+                </div>
+
+
+                <div style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: isSubmitted ? "#6b7280" : "inherit" // Grey text when disabled
+                  }}>
+                    Product Name: {p.ProductName}
+                  </div>
+                  <div style={{
+                    fontWeight: 600,
+                    fontSize: 15,
+                    color: isSubmitted ? "#9ca3af" : "#666" /// Grey text when disabled
                   }}>
                     ArticleNo: {p.ArticleNo}
                   </div>
