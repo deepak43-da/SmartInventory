@@ -287,74 +287,19 @@ import { useDispatch } from "react-redux";
 import { fetchTasks } from "../redux/actions/tasksActions";
 import axios from "axios";
 import Version from "../components/Version";
-import { persistor } from "../redux/store";
+import { store, persistor } from "../redux/store";
+import useDailyISTCleanup from "../hooks/useDailyISTCleanup";
 
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  useDailyISTCleanup(store, persistor);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   console.log(showPassword, "showPassword");
-
-  // const checkAndPerformCleanup = () => {
-  //   const lastCleanup = localStorage.getItem("last_data_cleanup_timestamp");
-  //   const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
-  //   const now = new Date();
-
-  //   if (!lastCleanup || now - new Date(lastCleanup) > twentyFourHoursInMs) {
-  //     console.log("Performing 24-hour data cleanup on login...");
-
-  //     // Clear user session data
-  //     localStorage.removeItem("auth");
-  //     localStorage.removeItem("id");
-  //     localStorage.removeItem("maindata");
-
-  //     // Update cleanup timestamp
-  //     localStorage.setItem("last_data_cleanup_timestamp", now.toISOString());
-  //   }
-  // };
-
-  // const checkAndPerformCleanup = () => {
-  //   const lastCleanup = localStorage.getItem("last_data_cleanup_timestamp");
-  //   const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
-  //   const now = new Date();
-
-  //   if (!lastCleanup || now - new Date(lastCleanup) > twentyFourHoursInMs) {
-  //     console.log("Performing 24-hour data cleanup on login...");
-
-  //     // Clear user session data but NOT offline data
-  //     localStorage.removeItem("auth");
-  //     // localStorage.removeItem("id");
-
-  //     // DO NOT clear: localStorage.removeItem("maindata");
-  //     // DO NOT clear: Redux Persist data (managed by persistConfig)
-
-  //     // Update cleanup timestamp
-  //     localStorage.setItem("last_data_cleanup_timestamp", now.toISOString());
-  //   }
-  // };
-
-
-
-  const checkAndPerformCleanup = async () => {
-    const lastCleanupDate = localStorage.getItem("last_cleanup_date");
-  
-    const saudiToday = new Date().toLocaleDateString("en-CA", {
-      timeZone: "Asia/Riyadh",
-    }); // gives YYYY-MM-DD format
-  
-    if (lastCleanupDate !== saudiToday) {
-      console.log("New Saudi day detected. Performing cleanup...");
-      await persistor.purge();
-      localStorage.removeItem("auth");
-  
-      localStorage.setItem("last_cleanup_date", saudiToday);
-    }
-  };
-  
 
   const handleLogin = async () => {
     if (!email || !password) return;
@@ -373,9 +318,6 @@ export default function Login() {
       );
 
       console.log("API Response:", response.data);
-
-      // Check and perform cleanup if needed
-      checkAndPerformCleanup();
 
       // Parse new API response
       const loginData = response.data.data && response.data.data[0];
@@ -410,9 +352,6 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuth === "true" && Number(id) !== 0) {
-      // Check cleanup on app start as well
-      checkAndPerformCleanup();
-
       navigate(`/read/${id}`);
     }
   }, [isAuth, id, navigate]);

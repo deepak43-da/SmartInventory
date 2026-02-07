@@ -2309,7 +2309,7 @@ export default function TaskDetail() {
           padding: "12px 18px",
         }}
       >
-        {display.ImageURL ? (
+        {display?.ImageURL ? (
           <img
             src={display.ImageURL}
             alt={display.DisplayID}
